@@ -1,0 +1,154 @@
+body{padding: 0px;margin: 0px;background-image: url("../assets/images/chess_bg.jpg");background-color: #6A4C30;}
+#chessBox {margin: auto ;width:100%;position: absolute; bottom: 0%; text-align: center;}
+#chess {background-color:#FFFFFFFF;margin: auto;position: absolute;top: 0; left: 0; bottom: 0; right: 0;}
+#tipsInfo{margin: auto ;width:100%;position: absolute; top: 1%; text-align: center;color: #BFA28A;display: none;font-size: x-large;}
+#noteInfo{margin: auto ;width:100%;position: absolute; top: 3%; text-align: center;color: #BFA28A;display: none;font-size: x-large;word-break;break-all;word-wrap;break-word;}
+#AIThink{margin: auto ;width:100%;text-align: center;color: #BFA28A;font-size: x-large;z-index: 555;top: 7%;position:absolute;display: none;}
+.btnBase{width:141px;height:52px;border-style:none;background-color: transparent;}
+.restartBtn{background: url("../assets/images/a.png") no-repeat 0px -120px;}
+.regretBtn{background: url("../assets/images/a.png") no-repeat -300px -120px;}
+.regretBtnDisable{display: none;}
+.helpBtn{background: url("../assets/images/a.png") no-repeat -150px -120px;}
+
+.prevBtnDisable{background: url("../assets/images/a.png") no-repeat 0px -60px;}
+.prevBtn{background: url("../assets/images/a.png") no-repeat 0px 0px;}
+.nextBtnDisable{background: url("../assets/images/a.png") no-repeat -150px -60px;}
+.nextBtn{background: url("../assets/images/a.png") no-repeat -150px 0px;}
+.prevBtn2Disable{background: url("../assets/images/a.png") no-repeat 0px -60px;}
+.prevBtn2{background: url("../assets/images/a.png") no-repeat 0px 0px;}
+.nextBtn2Disable{background: url("../assets/images/a.png") no-repeat -150px -60px;}
+.nextBtn2{background: url("../assets/images/a.png") no-repeat -150px 0px;}
+.replayBtn{background: url("../assets/images/a.png") no-repeat -300px 0px;}
+.replayBtnDisable{background: url("../assets/images/a.png") no-repeat -300px -60px;}
+
+.moreBtn1{background: url("../assets/images/a.png") no-repeat -300px -180px;}
+.moreBtn2{background: url("../assets/images/a.png") no-repeat -150px -180px;}
+.moreBtn4{background: url("../assets/images/a.png") no-repeat -150px -180px;}
+.moreBtn3{background: url("../assets/images/a.png") no-repeat -150px -180px;}
+.createBtn{background: url("../assets/images/b.png") no-repeat -150px -120px;}
+
+.chessbaseBtn{width:60px;height:60px;border-style:none;background-color: transparent;}
+.chess0Btn{background: url("../assets/images/b.png") no-repeat -5px -433px;}
+.chess1Btn{background: url("../assets/images/b.png") no-repeat -75px -433px;}
+.chess2Btn{background: url("../assets/images/b.png") no-repeat -150px -433px;}
+.chess3Btn{background: url("../assets/images/b.png") no-repeat -220px -432px;}
+.chess4Btn{background: url("../assets/images/b.png") no-repeat -290px -431px;}
+.chess5Btn{background: url("../assets/images/b.png") no-repeat -360px -430px;}
+.chess6Btn{background: url("../assets/images/b.png") no-repeat -5px -503px;}
+.chess7Btn{background: url("../assets/images/b.png") no-repeat -77px -507px;}
+.chess8Btn{background: url("../assets/images/b.png") no-repeat -152px -507px;}
+.chess9Btn{background: url("../assets/images/b.png") no-repeat -218px -502px;}
+.chess10Btn{background: url("../assets/images/b.png") no-repeat -290px -507px;}
+.chess11Btn{background: url("../assets/images/b.png") no-repeat -360px -502px;}
+
+
+.btn_dialog_save{width:139px;height:51px;background: url("../assets/images/b1.png") no-repeat -300px -420px; border-style:none;background-color: transparent;}
+.btn_dialog_cancle{width:139px;height:51px;background: url("../assets/images/b1.png") no-repeat 0px -420px; border-style:none;background-color: transparent;}
+.btn_dialog_ok{width:139px;height:51px;background: url("../assets/images/b1.png") no-repeat -150px -420px; border-style:none;background-color: transparent;}
+
+
+.pop-box { 	
+	z-index: 9999999; /*这个数值要足够大，才能够显示在最上层*/ 
+	margin: auto ;width:100%;position: fixed; top: 20%; text-align: center; background: #6A4C30; border: solid1px #6e8bde; 
+} 
+#bg {
+	width: 100%; height: 100%; position: absolute; top: 0; left: 0; 
+	z-index: 1001; background-color: #6A4C30; -moz-opacity: 0.6; opacity: .60; filter: alpha(opacity = 60); 
+}
+#bg1 {
+	width: 100%; height: 100%; position: absolute; top: 0; left: 0; 
+	z-index: 1001; background-color: #6A4C30; -moz-opacity: 0.0; opacity: .00; filter: alpha(opacity = 0); 
+}
+
+#sendBtn{width:139px;height:51px;background: url("../assets/images/a.png") no-repeat 0px -180px; border-style:none;background-color: transparent;}
+#sendBtn2{width:139px;height:51px;background: url("../assets/images/a.png") no-repeat 0px -180px; border-style:none;background-color: transparent;}
+/*#shareBtn{width:139px;height:51px;background-image: url("../assets/images/share.png"); border-style:none;background-color: transparent;display: none}*/
+#createBtn2{width:139px;height:51px;background: url("../assets/images/b.png") no-repeat -150px -120px; border-style:none;background-color: transparent;}
+#fullBtn{width:139px;height:51px;background: url("../assets/images/b.png") no-repeat -150px -300px; border-style:none;background-color: transparent;;display: none}
+#clearBtn{width:139px;height:51px;background: url("../assets/images/b.png") no-repeat -300px -300px; border-style:none;background-color: transparent;}
+#saveBtn{width:139px;height:51px;background: url("../assets/images/b.png") no-repeat -300px -240px; border-style:none;background-color: transparent;}
+#clearBtn1{width:139px;height:51px;background: url("../assets/images/b.png") no-repeat -300px -300px; border-style:none;background-color: transparent;}
+#saveBtn1{width:139px;height:51px;background: url("../assets/images/b.png") no-repeat -300px -240px; border-style:none;background-color: transparent;}
+#clearBtn2{width:139px;height:51px;background: url("../assets/images/b.png") no-repeat -300px -300px; border-style:none;background-color: transparent;}
+#saveBtn2{width:139px;height:51px;background: url("../assets/images/b.png") no-repeat -300px -240px; border-style:none;background-color: transparent;}
+#clearBtn3{width:139px;height:51px;background: url("../assets/images/b.png") no-repeat -300px -1300px; border-style:none;background-color: transparent;}
+#saveBtn3{width:139px;height:51px;background: url("../assets/images/b.png") no-repeat -300px -1240px; border-style:none;background-color: transparent;}
+
+#noteBtn{width:139px;height:51px;background: url("../assets/images/b.png") no-repeat -300px -359px; border-style:none;background-color: transparent;}
+#reverseBtn{width:139px;height:51px;background: url("../assets/images/b2.png") no-repeat -300px -355px; border-style:none;background-color: transparent;}
+#settingBtn{width:139px;height:51px;background: url("../assets/images/b2.png") no-repeat 0px -357px; border-style:none;background-color: transparent;}
+
+#btnBox{display: none}
+.coverMask {
+    position:fixed; top: 0px; right:0px; bottom:0px;filter: alpha(opacity=20); background-color: #000;
+    left: 0px;
+    opacity:0.2; -moz-opacity:0.2;
+}
+.cover {
+    position:fixed; top: 0px; right:0px; bottom:0px;
+    z-index: 2002; left: 0px; display:none;
+}
+.coverTips
+{
+    background: url("../assets/images/a.png") no-repeat 0px -600px;width: 285px;height: 100px;
+    float: right;position: relative;top: 20px;right: 20px;
+}
+.notedialog
+{
+	z-index: 9999999;
+    margin: auto ;width:100%;position: fixed; top: 20%; text-align: center;  font-size: x-large;word-break;break-all;word-wrap;break-word;
+	
+}
+.settingdialog
+{
+	z-index: 9999999;
+    margin: auto ;width:100%;position: fixed; top: 20%; text-align: left;  font-size: x-large;word-break;break-all;word-wrap;break-word;
+	
+}
+.settingdialog
+{
+	z-index: 9999999;
+    margin: auto ;width:100%;position: fixed; top: 0%; text-align: center;  font-size: x-large;word-break;break-all;word-wrap;break-word;display:none;	
+}
+.restartdialog
+{
+	z-index: 9999999;
+    margin: auto ;width:100%;position: fixed; top: 45%; text-align: center;  font-size: x-large;word-break;break-all;word-wrap;break-word;display:none;	
+}
+.replaydialog
+{
+	z-index: 9999999;
+    margin: auto ;width:100%;position: fixed; top: 45%; text-align: center;  font-size: x-large;word-break;break-all;word-wrap;break-word;display:none;	
+}
+.nextstepdialog
+{
+	z-index: 9999999;
+    margin: auto ;width:100%;position: fixed; top: 45%; text-align: center; display:none;	
+}
+.notedialog
+{
+    width:100%;position:absolute;border:1px solidred;color: #BFA28A;
+}
+.loading {position:fixed; top: 0px; right:0px; bottom:0px; background-color: #6A4C30;
+    z-index: 1002; left: 0px;}
+.logo {background: url("../assets/images/loading.png") no-repeat  20px 0px; width: 140px;height: 102px;position: relative;top: 0px;left: -70px;}
+.loadingInfo
+{
+     position: absolute; bottom: 50%; left: 50%;width: 300px;
+}
+.percent
+{
+    position: absolute;top: 120px; left: -80px; width: 300px;color: aliceblue;font-size: x-large;
+}
+#gameResult{
+    position:absolute; top: 0px; right:0px; bottom:0px;
+     left: -430px;display: none;
+}
+#gameWin{
+    background: url("../assets/images/a.png") no-repeat 0px -500px; width: 432px;height: 90px;
+    position: absolute;bottom: 50%; left: 50%;display: none;
+}
+#gameLose{
+    background: url("../assets/images/a.png") no-repeat 0px -400px; width: 436px;height: 94px;
+    position: absolute;bottom: 50%; left: 50%;display: none;
+}
