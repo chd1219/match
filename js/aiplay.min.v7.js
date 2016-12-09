@@ -10,33 +10,19 @@ function popupDiv(div_id) {
 	// 取得传入DIV的长度      
 	var popupWidth = $div_obj.width();            
 	// // 添加并显示遮罩层      
-	if	(div_id == "nextstepdialog"){
-		$("<div id='bg1'></div>").width(windowWidth * 0.99)          
-							.height(windowHeight * 0.99).click(function() {           
-								hideDiv(div_id); 
-								bill.cleanLine();								
-							}).appendTo("body").fadeIn(200);
-		$div_obj.css({  "position" : "absloute"   	})
-			.animate({    
-			left : windowWidth / 2 - popupWidth / 2,        
-			top : (windowHeight  - popupHeight ) * 0.90,        
-			opacity : "show"      
-			}, "slow");     
-	}
-	else{
-		$("<div id='bg'></div>").width(windowWidth * 0.99)          
-							.height(windowHeight * 0.99).click(function() {           
-								hideDiv(div_id);          
-							}).appendTo("body").fadeIn(200);
-		// 显示弹出的DIV      
-		$div_obj.css({  "position" : "absloute"   	})
-			.animate({    
-			left : windowWidth / 2 - popupWidth / 2,        
-			top : windowHeight / 2 - popupHeight / 2,        
-			opacity : "show"      
-			}, "slow");     
-	}		
-	     
+
+	$("<div id='bg'></div>").width(windowWidth * 0.99)          
+						.height(windowHeight * 0.99).click(function() {           
+							hideDiv(div_id);          
+						}).appendTo("body").fadeIn(200);
+	// 显示弹出的DIV      
+	$div_obj.css({  "position" : "absloute"   	})
+		.animate({    
+		left : windowWidth / 2 - popupWidth / 2,        
+		top : windowHeight / 2 - popupHeight / 2,        
+		opacity : "show"      
+		}, "slow");     
+
 }    
 /*隐藏弹出DIV*/    
 function hideDiv(div_id) {     
@@ -215,37 +201,22 @@ function loadConfig() {
     $.getJSON(e,
     function(e) {
 		$("#reverseBtn").show();
-        serverData = e;
-		if(serverData.BillType){
-			var a;
-			serverData.map ? ($("#moreBtn2").addClass("moreBtn2"), $("#moreBtn2").removeClass("moreBtn4"), comm.isPVP = !1, a = comm.parseMap(serverData.map)) : ($("#moreBtn2").addClass("moreBtn4"), $("#moreBtn2").removeClass("moreBtn2"), comm.isPVP = !0, comm.pvpTitle = serverData.meta.FUPAN_GAMESCENE_NAME, a = comm.initMap.concat(), 1 == serverData.meta.FUPAN_CHESS_COLOR && a.reverse()),
-			serverData.meta && serverData.meta.FUPAN_TITLE ? chapterTitle = serverData.meta.FUPAN_TITLE: (chapterTitle = "空章节标题", console.log(chapterTitle)),
-			document.title = chapterTitle;
-			var m = comm.parseMovesEx(serverData.moves);
-			comm.movesNum = m.length,
-			comm.parseNote(serverData.notes);
-			comm.initChessEx(a, m);			
-			bill.replayBtnUpdate(),
-			mode = 4;
-			showBtns();
-		}
-		else{
-			var a;
-			serverData.map ? ($("#moreBtn2").addClass("moreBtn2"), $("#moreBtn2").removeClass("moreBtn4"), comm.isPVP = !1, a = comm.parseMap(serverData.map)) : ($("#moreBtn2").addClass("moreBtn4"), $("#moreBtn2").removeClass("moreBtn2"), comm.isPVP = !0, comm.pvpTitle = serverData.meta.FUPAN_GAMESCENE_NAME, a = comm.initMap.concat(), 1 == serverData.meta.FUPAN_CHESS_COLOR && a.reverse()),
-			serverData.meta && serverData.meta.FUPAN_TITLE ? chapterTitle = serverData.meta.FUPAN_TITLE: (chapterTitle = "空章节标题", console.log(chapterTitle)),
-			document.title = chapterTitle;
-			var m = comm.parseMoves(serverData.moves);
-			comm.movesNum = m.length,
-			comm.initChess(a, m);
-			var o = new res.ReplayTip;
-			o.x = 116,
-			o.y = 296,
-			comm.chessTopLayer.parent.addChild(o),
-			comm.replayTip = o,
-			comm.replayBtnUpdate(),
-			mode = MODE_REPLAY;
-			showBtns();
-		}        
+        serverData = e;		
+		var a;
+		serverData.map ? ($("#moreBtn2").addClass("moreBtn2"), $("#moreBtn2").removeClass("moreBtn4"), comm.isPVP = !1, a = comm.parseMap(serverData.map)) : ($("#moreBtn2").addClass("moreBtn4"), $("#moreBtn2").removeClass("moreBtn2"), comm.isPVP = !0, comm.pvpTitle = serverData.meta.FUPAN_GAMESCENE_NAME, a = comm.initMap.concat(), 1 == serverData.meta.FUPAN_CHESS_COLOR && a.reverse()),
+		serverData.meta && serverData.meta.FUPAN_TITLE ? chapterTitle = serverData.meta.FUPAN_TITLE: (chapterTitle = "空章节标题", console.log(chapterTitle)),
+		document.title = chapterTitle;
+		var m = comm.parseMoves(serverData.moves);
+		comm.movesNum = m.length,
+		comm.initChess(a, m);
+		var o = new res.ReplayTip;
+		o.x = 116,
+		o.y = 296,
+		comm.chessTopLayer.parent.addChild(o),
+		comm.replayTip = o,
+		comm.replayBtnUpdate(),
+		mode = MODE_REPLAY;
+		showBtns();       
     })    
     else {
         comm.initChess(comm.initMap),
@@ -280,9 +251,7 @@ function loadSound(e) {
     fileLoaded(e)
 }
 function stageClick(e) {
-    mode == MODE_PLAY && play.clickCanvas(e),
-    mode == MODE_REPLAY && comm.clickCanvas(e),
-	(mode == MODE_BILL && serverData.BillType != 1 && bill.BillType != 1) && bill.clickCanvas(e)
+    mode == MODE_PLAY && play.clickCanvas(e)
 }
 function enterFrame() {
     var e = new Date,
@@ -304,28 +273,6 @@ function hideLoading() {
     $("#loading").hide()
 }
 function showBtns() {
-    $("#mode1").hide();
-	$("#mode2").hide();
-	$("#mode3").hide();
-	$("#mode4").hide();
-	$("#mode5").hide();
-	switch(mode){
-		case 1:
-			$("#mode1").show();
-			break;
-		case 2:
-			$("#mode2").show();
-			break;
-		case 3:
-			$("#mode3").show();
-			break;		
-		case 4:
-			$("#mode4").show();
-			break;		
-		case 5:
-			$("#mode5").show();
-			break;			
-	}   
     $("#btnBox").show()
 }
 function showResult(e) {
@@ -503,7 +450,7 @@ comm["class"].Man = function(e, a, m) {
         play.onChessDrop()
     },
     this.bl = function(e) {
-        var e = e || bill.map || play.map;
+        var e = e || play.map;
         return comm.bylaw[o.bl](this.x, this.y, e, this.my)
     }
 },
@@ -545,15 +492,6 @@ comm.parseMap = function(e) {
     }
     return m
 },
-comm.notes = [],
-comm.parseNote = function(e) {
-    for (var a = e,
-    n = 0; n < a.length; n++) {
-        var t = a[n].id+1;
-		bill.notes.length = t,
-		bill.notes[t-1] = a[n].note;        
-    }	
-},
 comm.parseMoves = function(e) {
     for (var a = e,
     m = 0; m < a.length; m++) a[m].src.x = a[m].src.x - 1,
@@ -566,19 +504,6 @@ comm.parseMoves = function(e) {
     delete a[m].reserved3,
     delete a[m].cid,
     delete a[m].order;
-    return a
-},
-comm.parseMovesEx = function(e) {
-    for (var a = [],m = 0; m < e.length; m++) {
-		if(a[e[m].index]){
-			a[e[m].index].push([e[m].step,e[m].id,e[m].perid]);
-		}
-		else{
-			a[e[m].index] = new Array();
-			a[e[m].index].push([e[m].step,e[m].id,e[m].perid]);
-		}		
-	}
-	bill.paceEx = a;
     return a
 },
 comm.initChess = function(e, a) {
@@ -594,19 +519,6 @@ comm.initChess = function(e, a) {
     initLight(),
     showBtns();
 	//initWebsocket()
-};
-comm.initChessEx = function(e, a) {
-    play.isPlay = !0;
-    var e = e || comm.initMap;
-    fullMoves = a || [],
-    fullMap = e.concat(),
-    moves = fullMoves.concat(),
-	bill.init(3, e, !0);
-    intiBoard(),
-    initDots(),
-    intiPane(),
-    initLight(),
-    showBtns()
 };
 var fullMap, fullMoves, moves = [],
 movesIndex = 0,
@@ -803,28 +715,14 @@ comm.onload = function() {
         dots: []
     },
     comm.mans = {},
-    $("#regretBtn").click(play.regret),
-    $("#replayBtn").click(comm.replayMoves),
-    $("#nextBtn").click(comm.replayNext),
-    $("#prevBtn").click(comm.replayPrev),
-    $("#restartBtn").click(comm.restart),   
-	$("#reverseBtn").click(bill.reverse),	
-	$("#noteBtn").click(bill.note),	
-	$("#settingBtn").click(bill.setting),	
-    $("#sendBtn").click(comm.send),
-	$("#prevBtn2").click(bill.replayPrev),
-    $("#nextBtn2").click(bill.replayNext),
+    $("#regretBtn").click(play.regret),    
+    $("#restartBtn").click(comm.restart),  
 	$("#returnBtn1").click(moreBtn),
     $("#returnBtn2").click(moreBtn),
     $("#returnBtn3").click(moreBtn),
 	$("#returnBtn4").click(moreBtn),
-    $("#returnBtn").click(moreBtn);	
-	$("#createBtn").click(bill.create),
-	$("#createBtn2").click(bill.create2),
-	$("#sendBtn2").click(bill.send),
-	$("#fullBtn").click(bill.fullBroad),
-	$("#clearBtn").click(bill.cleanBroad),				
-	$("#saveBtn").click(bill.save);	
+    $("#returnBtn").click(moreBtn);	 	
+    $("#sendBtn").click(comm.send);
 };
 comm.showPane = function(e, a, m, o) {
     comm.box1.visible = !0,

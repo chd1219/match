@@ -9,46 +9,26 @@ function popupDiv(div_id) {
 	var popupHeight = $div_obj.height();      
 	// 取得传入DIV的长度      
 	var popupWidth = $div_obj.width();            
-	// // 添加并显示遮罩层      
-	if	(div_id == "nextstepdialog"){
-		$("<div id='bg1'></div>").width(windowWidth * 0.99)          
-							.height(windowHeight * 0.99).click(function() {           
-								hideDiv(div_id); 
-								bill.cleanLine();								
-							}).appendTo("body").fadeIn(200);
-		$div_obj.css({  "position" : "absloute"   	})
-			.animate({    
-			left : windowWidth / 2 - popupWidth / 2,        
-			top : (windowHeight  - popupHeight ) * 0.90,        
-			opacity : "show"      
-			}, "slow");     
-	}
-	else{
-		$("<div id='bg'></div>").width(windowWidth * 0.99)          
-							.height(windowHeight * 0.99).click(function() {           
-								hideDiv(div_id);          
-							}).appendTo("body").fadeIn(200);
-		// 显示弹出的DIV      
-		$div_obj.css({  "position" : "absloute"   	})
-			.animate({    
-			left : windowWidth / 2 - popupWidth / 2,        
-			top : windowHeight / 2 - popupHeight / 2,        
-			opacity : "show"      
-			}, "slow");     
-	}		
+	// // 添加并显示遮罩层 
+	$("<div id='bg'></div>").width(windowWidth * 0.99)          
+						.height(windowHeight * 0.99).click(function() {           
+							hideDiv(div_id);          
+						}).appendTo("body").fadeIn(200);
+	// 显示弹出的DIV      
+	$div_obj.css({  "position" : "absloute"   	})
+		.animate({    
+		left : windowWidth / 2 - popupWidth / 2,        
+		top : windowHeight / 2 - popupHeight / 2,        
+		opacity : "show"      
+		}, "slow");     
+		
 	     
 }    
 /*隐藏弹出DIV*/    
 function hideDiv(div_id) {     
-	if	(div_id == "nextstepdialog"){
-		$("#bg1").remove();
-		for (i=0;i<countPath;i++){
-			$(".chessbaseBtn").remove();
-		}
-	}
-	else{
-		$("#bg").remove();
-	}
+	
+	$("#bg").remove();
+
 	$("#" + div_id).animate({ 
 	left : 0,        
 	top : 0,        
@@ -61,9 +41,9 @@ function initWebsocket(){
 
 	var wsImpl = window.WebSocket || window.MozWebSocket;
 	// create a new websocket and connect
-	//window.ws = new wsImpl('ws://121.43.37.233:8183/');
-	window.ws = new ReconnectingWebSocket('ws://121.43.37.233:8183/');
-	//window.ws = new wsImpl('ws://127.0.0.1:8180/');
+	//window.ws = new wsImpl('ws://121.43.37.233:8282/');
+	//window.ws = new ReconnectingWebSocket('ws://121.43.37.233:8183/');
+	window.ws = new wsImpl('ws://127.0.0.1:8282/');
 
 	if (ws.readyState == 3) {
 		alert("连接服务器失败");
@@ -71,7 +51,7 @@ function initWebsocket(){
 	// when data is comming from the server, this metod is called
 	ws.onmessage = function (evt) {
 		heartCheck.reset();
-		play.ParseMsg(evt.data);	
+		play.onMessage(evt.data);	
 		console.log(evt.data);
 	};
 
@@ -105,13 +85,11 @@ var heartCheck = {
         }, this.timeout)
     }
 }
-
 function sendPosition(e){
 	if(!ws) return;
 	ws.send(e);
 	$("#AIThink").show();
 }
-
 function addChess(e) {
     e || (e = "c");
     var a = new createjs.Container,
@@ -208,51 +186,10 @@ function getEnv() {
     return /micromessenger(\/[\d\.]+)*/.test(e) ? "weixin": /qq\/(\/[\d\.]+)*/.test(e) || /qzone\//.test(e) ? "qq": "web"
 }
 function loadConfig() {
-    file = getUrlParam("file"),
-    level_id = getUrlParam("level_id");
-    var e;
-    if (file) e = REPLAY_GET_URL + file,
-    $.getJSON(e,
-    function(e) {
-		$("#reverseBtn").show();
-        serverData = e;
-		if(serverData.BillType){
-			var a;
-			serverData.map ? ($("#moreBtn2").addClass("moreBtn2"), $("#moreBtn2").removeClass("moreBtn4"), comm.isPVP = !1, a = comm.parseMap(serverData.map)) : ($("#moreBtn2").addClass("moreBtn4"), $("#moreBtn2").removeClass("moreBtn2"), comm.isPVP = !0, comm.pvpTitle = serverData.meta.FUPAN_GAMESCENE_NAME, a = comm.initMap.concat(), 1 == serverData.meta.FUPAN_CHESS_COLOR && a.reverse()),
-			serverData.meta && serverData.meta.FUPAN_TITLE ? chapterTitle = serverData.meta.FUPAN_TITLE: (chapterTitle = "空章节标题", console.log(chapterTitle)),
-			document.title = chapterTitle;
-			var m = comm.parseMovesEx(serverData.moves);
-			comm.movesNum = m.length,
-			comm.parseNote(serverData.notes);
-			comm.initChessEx(a, m);			
-			bill.replayBtnUpdate(),
-			mode = 4;
-			showBtns();
-		}
-		else{
-			var a;
-			serverData.map ? ($("#moreBtn2").addClass("moreBtn2"), $("#moreBtn2").removeClass("moreBtn4"), comm.isPVP = !1, a = comm.parseMap(serverData.map)) : ($("#moreBtn2").addClass("moreBtn4"), $("#moreBtn2").removeClass("moreBtn2"), comm.isPVP = !0, comm.pvpTitle = serverData.meta.FUPAN_GAMESCENE_NAME, a = comm.initMap.concat(), 1 == serverData.meta.FUPAN_CHESS_COLOR && a.reverse()),
-			serverData.meta && serverData.meta.FUPAN_TITLE ? chapterTitle = serverData.meta.FUPAN_TITLE: (chapterTitle = "空章节标题", console.log(chapterTitle)),
-			document.title = chapterTitle;
-			var m = comm.parseMoves(serverData.moves);
-			comm.movesNum = m.length,
-			comm.initChess(a, m);
-			var o = new res.ReplayTip;
-			o.x = 116,
-			o.y = 296,
-			comm.chessTopLayer.parent.addChild(o),
-			comm.replayTip = o,
-			comm.replayBtnUpdate(),
-			mode = MODE_REPLAY;
-			showBtns();
-		}        
-    })    
-    else {
-        comm.initChess(comm.initMap),
-        mode = MODE_PLAY;
-        var m = comm.getMap4Server(comm.initMap);
-        requestServerStart(m)
-    }
+	room_id = getUrlParam("roomid");
+	comm.initChess(comm.initMap);
+	if(!room_id) comm.newgame();
+	else setTimeout((function(){ws.send("roomid="+room_id);}),500);
 }
 function requestServerStart(e) {
     e = e || serverData.map;
@@ -280,9 +217,7 @@ function loadSound(e) {
     fileLoaded(e)
 }
 function stageClick(e) {
-    mode == MODE_PLAY && play.clickCanvas(e),
-    mode == MODE_REPLAY && comm.clickCanvas(e),
-	(mode == MODE_BILL && serverData.BillType != 1 && bill.BillType != 1) && bill.clickCanvas(e)
+   play.clickCanvas(e)
 }
 function enterFrame() {
     var e = new Date,
@@ -303,29 +238,7 @@ function hideMask() {
 function hideLoading() {
     $("#loading").hide()
 }
-function showBtns() {
-    $("#mode1").hide();
-	$("#mode2").hide();
-	$("#mode3").hide();
-	$("#mode4").hide();
-	$("#mode5").hide();
-	switch(mode){
-		case 1:
-			$("#mode1").show();
-			break;
-		case 2:
-			$("#mode2").show();
-			break;
-		case 3:
-			$("#mode3").show();
-			break;		
-		case 4:
-			$("#mode4").show();
-			break;		
-		case 5:
-			$("#mode5").show();
-			break;			
-	}   
+function showBtns() {    
     $("#btnBox").show()
 }
 function showResult(e) {
@@ -378,13 +291,13 @@ function initLayer(e) {
     showBtns(),
     setTimeout(hideLoading, 200),
     commTipsImg = new Image,
-    commTipsImg.src = "assets/images/commTips.png"	
+    commTipsImg.src = "assets/images/commTips.png";
 }
 function showFloatTip(e, a) {
     function m(e) {
         e.parent.removeChild(e)
     }
-    a = a || 1200;
+    a = a || 1000;
     var o = comm.getTips(e);
     o.alpha = 0;
     var n = o.getBounds().width,
@@ -401,7 +314,7 @@ function showFloatTip(e, a) {
     1e3).call(m, [o])
 }
 function regret(e) {
-    e = e || 2;
+    e = e || 1;
     for (var a = comm.arr2Clone(play.cMap), m = 0; m < a.length; m++) for (var o = 0; o < a[m].length; o++) {
         var n = a[m][o];
         if (n) {
@@ -412,8 +325,7 @@ function regret(e) {
             comm.chessLayer.addChild(t.chess)
         }
     }
-    for (var s = play.pace,
-    o = 0; e > o; o++) s.pop();
+    for (var s = play.pace, o = 0; e > o; o++) s.pop();
     for (var m = 0; m < s.length; m++) {
         var r = s[m].split(""),
         c = parseInt(r[0], 10),
@@ -438,7 +350,7 @@ function regret(e) {
     comm.light.visible = !1,
     comm.hidePane(),
     play.map = a,
-    play.my = 1,
+    //play.my = 1,
     play.isPlay = !0,
     play.isAnimating = !1
 }
@@ -503,7 +415,7 @@ comm["class"].Man = function(e, a, m) {
         play.onChessDrop()
     },
     this.bl = function(e) {
-        var e = e || bill.map || play.map;
+        var e = e || play.map;
         return comm.bylaw[o.bl](this.x, this.y, e, this.my)
     }
 },
@@ -546,14 +458,6 @@ comm.parseMap = function(e) {
     return m
 },
 comm.notes = [],
-comm.parseNote = function(e) {
-    for (var a = e,
-    n = 0; n < a.length; n++) {
-        var t = a[n].id+1;
-		bill.notes.length = t,
-		bill.notes[t-1] = a[n].note;        
-    }	
-},
 comm.parseMoves = function(e) {
     for (var a = e,
     m = 0; m < a.length; m++) a[m].src.x = a[m].src.x - 1,
@@ -567,46 +471,20 @@ comm.parseMoves = function(e) {
     delete a[m].cid,
     delete a[m].order;
     return a
-},
-comm.parseMovesEx = function(e) {
-    for (var a = [],m = 0; m < e.length; m++) {
-		if(a[e[m].index]){
-			a[e[m].index].push([e[m].step,e[m].id,e[m].perid]);
-		}
-		else{
-			a[e[m].index] = new Array();
-			a[e[m].index].push([e[m].step,e[m].id,e[m].perid]);
-		}		
-	}
-	bill.paceEx = a;
-    return a
-},
+}
 comm.initChess = function(e, a) {
-    play.isPlay = !0;
+    play.isPlay = !1;
     var e = e || comm.initMap;
     fullMoves = a || [],
     fullMap = e.concat(),
     moves = fullMoves.concat(),
-    play.init(3, e),
+   // play.init(3, e),
     intiBoard(),
     initDots(),
     intiPane(),
     initLight(),
     showBtns();
-	//initWebsocket()
-};
-comm.initChessEx = function(e, a) {
-    play.isPlay = !0;
-    var e = e || comm.initMap;
-    fullMoves = a || [],
-    fullMap = e.concat(),
-    moves = fullMoves.concat(),
-	bill.init(3, e, !0);
-    intiBoard(),
-    initDots(),
-    intiPane(),
-    initLight(),
-    showBtns()
+	initWebsocket()
 };
 var fullMap, fullMoves, moves = [],
 movesIndex = 0,
@@ -614,74 +492,30 @@ movesTipsShow = !0,
 reverseMode = 0,
 movesInterval,
 autoset;
+comm.newgame = function() {
+	popupDiv('onlinedialog');		
+		$("#onlinedialog").on('click', '.btn_dialog_cancle', function () {          
+					hideDiv('onlinedialog');    
+                }).on('click', '.btn_dialog_ok', function () {                    
+					hideDiv('onlinedialog');    
+					var roomid = Math.round(Math.random()*10000);
+					var href = baseURL+'online.html?roomid='+roomid;	
+					location.href = href;	
+                });		
+},
 comm.restart = function() {
 	popupDiv('restartdialog');		
 		$("#restartdialog").on('click', '.btn_dialog_cancle', function () {          
 					hideDiv('restartdialog');    
                 }).on('click', '.btn_dialog_ok', function () {                    
 					hideDiv('restartdialog');    
-					hideResult(), 
-					cleanChess(),
-					setEnable("regretBtn", !0), 
-					play.isPlay = !0, 
-					play.init(play.depth, play.nowMap), 
-					canRestart = !1, 					
-					requestServerStart()
+					var href = baseURL+'online.html';	
+					location.href = href;	
                 });		
 	
 },
-comm.autoPlay = function() {
-	play.autoPlay();
-	autoset = setInterval(play.autoPlay, 2000);
-}
-comm.replayNext = function() {
-    clearInterval(movesInterval),
-    movesTipsShow && (movesIndex = 0, comm.replayTipHide(), movesTipsShow = !1),
-    replayMovesStep()
-},
-comm.replayPrev = function() {
-    if (clearInterval(movesInterval), cleanChess(), moves = fullMoves.concat(), play.init(3, fullMap), movesIndex > 0) {
-        movesIndex--;
-        for (var e = 0; movesIndex > e; e++) play.stepPlay(moves[e].src, moves[e].dst, !0)
-    }
-    comm.replayBtnUpdate()
-},
-comm.replayBtnUpdate = function() {
-    0 >= movesIndex ? (setEnable("prevBtn", !1), setEnable("replayBtn", !1)) : (setEnable("prevBtn", !0), setEnable("replayBtn", !0)),
-    movesIndex >= moves.length ? setEnable("nextBtn", !1) : setEnable("nextBtn", !0),
-    $("#tipsInfo").text("第" + movesIndex + "步 / 总" + moves.length + "步"),	
-    $("#tipsInfo").show();
-	if(comm.notes[movesIndex]){
-		$("#noteInfo").text(comm.notes[movesIndex]),
-		$("#noteInfo").show()
-	}else{
-		$("#noteInfo").hide()
-	}
-},
 comm.clickCanvas = function(e) {
     movesTipsShow && (comm.replayMoves(), comm.replayTipHide(), movesTipsShow = !1)
-},
-comm.replayTipHide = function() {
-    function e() {
-        a.parent.removeChild(a)
-    }
-    if (comm.replayTip) {
-        var a = comm.replayTip;
-        comm.replayTip = void 0,
-        createjs.Tween.get(a).to({
-            alpha: 0
-        },
-        1e3).call(e)
-    }
-},
-comm.replayMoves = function() {
-    clearInterval(movesInterval),
-    cleanChess(),
-    moves = fullMoves.concat(),
-    play.init(3, fullMap),
-    movesIndex = 0,
-    replayMovesStep(),
-    movesInterval = setInterval(replayMovesStep, 1500)
 },
 comm.reverseY = function(e) {
     return 9 - e
@@ -753,7 +587,12 @@ comm.getMoves6Server = function() {
 	var e = "",o = "";
     for (var a = 0; a < play.pace.length; a++) {
         var m = play.pace[a].split("");
-        o = " "+(parseInt(m[0])+1)+" "+(10-parseInt(m[1]))+" "+(parseInt(m[2])+1)+" "+(10-parseInt(m[3]));            
+		if(reverseMode) {
+			o = " "+(parseInt(m[0])+1)+" "+(10-parseInt(m[1]))+" "+(parseInt(m[2])+1)+" "+(10-parseInt(m[3]));  		
+		}
+		else {
+			o = " "+(10-(parseInt(m[0])+1))+" "+(11-(10-parseInt(m[1])))+" "+(10-(parseInt(m[2])+1))+" "+(11-(10-parseInt(m[3]))); 	
+		}
         e += o;
     }
     return e
@@ -804,27 +643,13 @@ comm.onload = function() {
     },
     comm.mans = {},
     $("#regretBtn").click(play.regret),
-    $("#replayBtn").click(comm.replayMoves),
-    $("#nextBtn").click(comm.replayNext),
-    $("#prevBtn").click(comm.replayPrev),
-    $("#restartBtn").click(comm.restart),   
-	$("#reverseBtn").click(bill.reverse),	
-	$("#noteBtn").click(bill.note),	
-	$("#settingBtn").click(bill.setting),	
-    $("#sendBtn").click(comm.send),
-	$("#prevBtn2").click(bill.replayPrev),
-    $("#nextBtn2").click(bill.replayNext),
+    $("#restartBtn").click(comm.restart),  
 	$("#returnBtn1").click(moreBtn),
     $("#returnBtn2").click(moreBtn),
     $("#returnBtn3").click(moreBtn),
 	$("#returnBtn4").click(moreBtn),
     $("#returnBtn").click(moreBtn);	
-	$("#createBtn").click(bill.create),
-	$("#createBtn2").click(bill.create2),
-	$("#sendBtn2").click(bill.send),
-	$("#fullBtn").click(bill.fullBroad),
-	$("#clearBtn").click(bill.cleanBroad),				
-	$("#saveBtn").click(bill.save);	
+    $("#sendBtn").click(comm.send);
 };
 comm.showPane = function(e, a, m, o) {
     comm.box1.visible = !0,
@@ -853,8 +678,14 @@ comm.createMans = function(e) {
     }
 },
 comm.send = function(e) {
+	
 	var a = {};
-	a.map = comm.moves4Server,
+	a.map = comm.moves4Server;
+	if(!a.map){
+		showFloatTip("还没开始下棋呢");
+		return;
+	}		
+	
 	a.moves = comm.getMoves4Server();
 	var m = -1;
 	serverData.head && (m = serverData.head.id),
@@ -873,11 +704,9 @@ comm.send = function(e) {
 	if ( comm.movesNum == 0){
 		showFloatTip("还没开始下棋呢");
 		return;
-	}
-		
+	}		
 	var n = REPLAY_SAVE_URL + comm.filename;
-	//$("#sendBtn").hide(),
-	var map = comm.getMap6Server(comm.initMap);
+	var map = comm.getMap6Server(!reverseMode ? comm.arr2Clone(comm.initMap) : comm.arrReverse(comm.initMap));
 	var moves = comm.getMoves6Server();
 	var _json = {"map": map, "moves":moves, "filename":comm.filename};
 	$.ajax({
@@ -909,26 +738,6 @@ comm.arr2Clone = function(e) {
 comm.arrReverse = function(e) {
     for (var a = [], m = 0; m < e.length; m++) a[m] = e[e.length-1-m].reverse().slice();
     return a
-},
-//ajax载入数据
-comm.getData = function (url,fun){
-	var XMLHttpRequestObject=false;
-	if(window.XMLHttpRequest){
-		XMLHttpRequestObject=new XMLHttpRequest();
-	}else if(window.ActiveXObject){
-		XMLHttpRequestObject=new ActiveXObject("Microsoft.XMLHTTP");
-	}
-	if(XMLHttpRequestObject){
-		XMLHttpRequestObject.open("GET",url);
-		XMLHttpRequestObject.setRequestHeader('Content-Type','application/x-www-form-urlencoded');
-		XMLHttpRequestObject.onreadystatechange=function (){
-			if(XMLHttpRequestObject.readyState==4 && XMLHttpRequestObject.status==200){
-				fun (XMLHttpRequestObject.responseText)
-				//return XMLHttpRequestObject.responseText;
-			}
-		}
-	XMLHttpRequestObject.send(null);
-	}
 },
 comm.initMap = [["C0", "M0", "X0", "S0", "J0", "S1", "X1", "M1", "C1"], [, , , , , , , , ""], [, "P0", , , , , , "P1","",], ["Z0", , "Z1", , "Z2", , "Z3", , "Z4"], [, , , , , , , , ""], [, , , , , , , , ""], ["z0", , "z1", , "z2", , "z3", , "z4"], [, "p0", , , , , , "p1",""], [, , , , , , , , ""], ["c0", "m0", "x0", "s0", "j0", "s1", "x1", "m1", "c1"]],
 comm.keys = {
@@ -1204,4 +1013,3 @@ comm.getTips = function(e) {
     o.addChild(e),
     o
 };
-

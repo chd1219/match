@@ -1,11 +1,8 @@
 var play = play || {};
 play.init = function(e, a) {
-    var a = a || comm.initMap;
-    play.cMap = comm.arr2Clone(a);
-    var e = e || 3;
-    play.my = 1,
-    play.nowMap = a,
-    play.map = comm.arr2Clone(a),
+    var a = a || play.map;   
+	play.cMap = comm.arr2Clone(a),
+    play.nowMap = play.map,
     play.nowManKey = !1,
     play.pace = [],
     play.isPlay = !0,
@@ -13,7 +10,6 @@ play.init = function(e, a) {
     play.bylaw = comm.bylaw,
     play.showPane = comm.showPane,
     play.isOffensive = !0,
-    play.depth = e,
     play.isFoul = !1,
     play.mans = comm.mans = {},
     comm.createMans(a);
@@ -52,7 +48,9 @@ play.addRemoveOnDrop = function(e) {
     removeOnDrops.push(e)
 },
 play.regret = function() {
-    play.pace.length >= 2 ? (regret(), SAI(3, {},
+	if (play.isAnimating) return ! 1;
+    if (!play.isPlay) return ! 1;
+    play.pace.length >= 1 ? (regret(), SAI(3, {},
     onReqRegret, onFault)) : showFloatTip("还没开始下棋呢")
 },
 play.clickCanvas = function(e) {
@@ -95,12 +93,12 @@ play.clickMan = function(e, a, m) {
             comm.dot.dots = [],
             comm.hideDots(),
             comm.light.visible = !1,			
-			play.AIPlay2(),
+			play.AIPlay(n + a + m),
             "j0" == e && play.onGameEnd( - 1),
             "J0" == e && play.onGameEnd(1);						
         }
     } else {
-		1 === o.my && (
+		play.my === o.my && (
 		comm.mans[play.nowManKey] && (comm.mans[play.nowManKey].alpha = 1),
 		comm.hideDots(), 
 		comm.hidePane(), 
@@ -139,7 +137,7 @@ play.clickPoint = function(e, a) {
         play.nowManKey = !1,
         comm.dot.dots = [],
         comm.hideDots(),
-		play.AIPlay2(),
+		play.AIPlay(n + e + a),
         comm.light.visible = !1;		
     }
 },
@@ -166,16 +164,11 @@ play.autoPlay = function(){
 			else play.my = 1;	
 		}			
 },
-play.AIPlay = function() {
+play.AIPlay = function(e) {
 	play.showThink();
 	waitServerPlay = !0;
-	sendPosition(play.getFen(play.map,play.my));
-	console.log(play.getFen(play.map,play.my));
-	//setTimeout(play.serverAIPlay,100);
-	//play.serverAIPlay();
-   // play.addCallOnDrop(play.serverAIPlay)
-   // play.addCallOnDrop(play.clientPlay)
-	//play.clientPlay();
+	sendPosition("move "+e);
+	console.log(e);
 },
 play.AIPlay2 = function() {//黑
 	play.showThink();
@@ -201,11 +194,7 @@ play.serverAIPlay = function() {
 		}
 				
         play.pace.push(e.join(""));
-		if(playmode != "1"){
-			movesIndex++; 
-			bill.branch(e.join(""));
-			bill.replayBtnUpdate();	
-		}
+		
         var a = play.map[e[1]][e[0]];
         play.nowManKey = a;
         var a = play.map[e[3]][e[2]];
@@ -217,61 +206,57 @@ play.serverAIPlay = function() {
     }
 	play.hideThink();
 },
-play.clientPlay = function() {
-    if (0 != play.isPlay) {
-		//checkIsFinalKill();
-        var e = AI.init();
-        if (!e) {
-			if(play.my == 1)		return void play.onGameEnd(-1);
-			else return void play.onGameEnd(1);
-		}			
-        play.pace.push(e.join(""));
-        var a = play.map[e[1]][e[0]];
-        play.nowManKey = a;
-        var a = play.map[e[3]][e[2]];
-        a ? setTimeout(play.AIclickMan, 100, a, e[2], e[3]) : setTimeout(play.AIclickPoint, 100, e[2], e[3])
-    }
-},
-play.ParseMsg = function(d) {
-
-	if(d.match("bestmove")){
-		var e = d.split("bestmove "); 
+play.onMessage = function(d) {
+	
+	//showFloatTip(d);
+	
+	if(d.match("player")){
+		var e = d.split("player "); 
+		if(e[1] == "1") play.my = 1,play.map = comm.arr2Clone(comm.initMap);
+		else if(e[1] == "2") reverseMode = 1,play.my = -1,play.map = comm.arrReverse(comm.initMap);
+	}
+	if(d.match("isready")){
+		var count = 0;
+		waitingset = setInterval(function(){
+			if(count++ < 10){
+				showFloatTip(11-count,500);
+			}
+			else{
+				clearInterval(waitingset);
+			}
+		},1000)
+	}
+	if(d.match("running")){
+		if(play.isPlay) return;
+		play.isPlay = !0;
+		play.init()
+	}
+	
+	if(d.match("close")){
+		showFloatTip(d);
+		//cleanChess();
+		//play.isPlay = !1;
+		//reverseMode = 0;
+	}
+	
+	if(d.match("move")){
+		var e = d.split("move "); 
 		
 		if(e[1].match("null") || e[1].match("none")){
 			play.onGameEnd( play.my, !0);
 			return;
 		}
-		var o = e[1].split(""); 
-		
-		for(var i=0;i<4;i++){
-			switch(o[i]){
-				case "a": o[i] = "0"; break;
-				case "b": o[i] = "1"; break;
-				case "c": o[i] = "2"; break;
-				case "d": o[i] = "3"; break;
-				case "e": o[i] = "4"; break;
-				case "f": o[i] = "5"; break;
-				case "g": o[i] = "6"; break;
-				case "h": o[i] = "7"; break;
-				case "i": o[i] = "8"; break;
-				case "0": o[i] = "9"; break;
-				case "1": o[i] = "8"; break;
-				case "2": o[i] = "7"; break;
-				case "3": o[i] = "6"; break;
-				case "4": o[i] = "5"; break;
-				case "5": o[i] = "4"; break;
-				case "6": o[i] = "3"; break;
-				case "7": o[i] = "2"; break;
-				case "8": o[i] = "1"; break;
-				case "9": o[i] = "0"; break;
-			}                         
+		var o = e[1].split(""); 	
+		if(!reverseMode)	{
+			o[0] = 8 - o[0];
+			o[1] = 9 - o[1];
+			o[2] = 8 - o[2];
+			o[3] = 9 - o[3];
 		}
+			
 		o.length = 4;
 		play.aiPace = o;	
-		//play.serverAIPlay();
-		//setTimeout((function(){play.serverAIPlay();}),500);
-		if(playmode == "4") setTimeout((function(){play.serverAIPlay();}),100);
-		else play.serverAIPlay();
+		play.serverAIPlay();
 	}
 	else {
 		play.aiPace = null;	
@@ -295,19 +280,13 @@ play.AIclickMan = function(e, a, m, o) {
     play.nowManKey = !1,
     "j0" == e && play.onGameEnd( - 1),
     "J0" == e && play.onGameEnd(1),
-   // mode == MODE_PLAY && play.hideThink()
     play.hideThink();
-	//checkIsFinalKill();
-	//setTimeout((function(){checkIsFinalKill();}),100);
 },
 play.AIclickPoint = function(e, a, m) {
     var o = play.nowManKey,
     n = comm.mans[o];
     play.nowManKey && (delete play.map[comm.mans[play.nowManKey].y][comm.mans[play.nowManKey].x], play.map[a][e] = o, comm.showPane(n.x, n.y, e, a), n.x = e, n.y = a, m ? n.move() : n.animate(), play.nowManKey = !1),
-    //mode == MODE_PLAY && play.isPlay && play.hideThink()
 	play.hideThink();
-	//checkIsFinalKill();
-	//setTimeout((function(){checkIsFinalKill();}),100);
 },
 play.indexOfPs = function(e, a) {
     for (var m = 0; m < e.length; m++) if (e[m][0] == a[0] && e[m][1] == a[1]) return ! 0;
@@ -340,13 +319,11 @@ play.onGameEnd = function(e, a) {
 },
 play.showWin = function() {
     createjs.Sound.play("gamewin"),
-	showFloatTip("恭喜你，你赢了！");
-   // showResult(1)
+	reverseMode ? showFloatTip("很遗憾，你输了！") : showFloatTip("恭喜你，你赢了！");
 },
 play.showLose = function() {
     createjs.Sound.play("gamelose"),
-	showFloatTip("很遗憾，你输了！");
-   // showResult(0)
+	reverseMode ? showFloatTip("恭喜你，你赢了！") : showFloatTip("很遗憾，你输了！");
 };
 play.getFen = function(e,a){
 	var result = "position fen ";
@@ -357,8 +334,6 @@ play.getFen = function(e,a){
 		coutZero = 0;
 		for(var j=0;j<9;j++){
 			o = e[i][j];
-			//arr = o.split("");
-			//o = e[i][j].slice(0,1);
 			
 			if(!o){
 				coutZero++;

@@ -1,4 +1,4 @@
-body{padding: 0px;margin: 0px;background-image: url("../assets/images/chess_bg.jpg");background-color: #6A4C30;}
+﻿body{padding: 0px;margin: 0px;background-image: url("../assets/images/chess_bg.jpg");background-color: #6A4C30;}
 #chessBox {margin: auto ;width:100%;position: absolute; bottom: 0%; text-align: center;}
 #chess {background-color:#FFFFFFFF;margin: auto;position: absolute;top: 0; left: 0; bottom: 0; right: 0;}
 #tipsInfo{margin: auto ;width:100%;position: absolute; top: 1%; text-align: center;color: #BFA28A;display: none;font-size: x-large;}
@@ -21,10 +21,6 @@ body{padding: 0px;margin: 0px;background-image: url("../assets/images/chess_bg.j
 .replayBtn{background: url("../assets/images/a.png") no-repeat -300px 0px;}
 .replayBtnDisable{background: url("../assets/images/a.png") no-repeat -300px -60px;}
 
-.moreBtn1{background: url("../assets/images/a.png") no-repeat -300px -180px;}
-.moreBtn2{background: url("../assets/images/a.png") no-repeat -150px -180px;}
-.moreBtn4{background: url("../assets/images/a.png") no-repeat -150px -180px;}
-.moreBtn3{background: url("../assets/images/a.png") no-repeat -150px -180px;}
 .createBtn{background: url("../assets/images/b.png") no-repeat -150px -120px;}
 
 .chessbaseBtn{width:60px;height:60px;border-style:none;background-color: transparent;}
@@ -77,7 +73,11 @@ body{padding: 0px;margin: 0px;background-image: url("../assets/images/chess_bg.j
 #noteBtn{width:139px;height:51px;background: url("../assets/images/b.png") no-repeat -300px -359px; border-style:none;background-color: transparent;}
 #reverseBtn{width:139px;height:51px;background: url("../assets/images/b2.png") no-repeat -300px -355px; border-style:none;background-color: transparent;}
 #settingBtn{width:139px;height:51px;background: url("../assets/images/b2.png") no-repeat 0px -357px; border-style:none;background-color: transparent;}
-
+#returnBtn{width:139px;height:51px;background: url("../assets/images/b2.png") no-repeat 0px -477px; border-style:none;background-color: transparent;}
+#returnBtn1{width:139px;height:51px;background: url("../assets/images/b2.png") no-repeat 0px -477px; border-style:none;background-color: transparent;}
+#returnBtn2{width:139px;height:51px;background: url("../assets/images/b2.png") no-repeat 0px -477px; border-style:none;background-color: transparent;}
+#returnBtn3{width:139px;height:51px;background: url("../assets/images/b2.png") no-repeat 0px -477px; border-style:none;background-color: transparent;}
+#returnBtn4{width:139px;height:51px;background: url("../assets/images/b2.png") no-repeat 0px -477px; border-style:none;background-color: transparent;}
 #btnBox{display: none}
 .coverMask {
     position:fixed; top: 0px; right:0px; bottom:0px;filter: alpha(opacity=20); background-color: #000;
@@ -99,10 +99,10 @@ body{padding: 0px;margin: 0px;background-image: url("../assets/images/chess_bg.j
     margin: auto ;width:100%;position: fixed; top: 20%; text-align: center;  font-size: x-large;word-break;break-all;word-wrap;break-word;
 	
 }
-.settingdialog
+.onlinedialog
 {
 	z-index: 9999999;
-    margin: auto ;width:100%;position: fixed; top: 20%; text-align: left;  font-size: x-large;word-break;break-all;word-wrap;break-word;
+    margin: auto ;width:100%;position: fixed; top: 0%; text-align: center;  font-size: x-large;word-break;break-all;word-wrap;break-word;
 	
 }
 .settingdialog

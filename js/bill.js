@@ -109,7 +109,7 @@ bill.send = function(e) {
 		dataType: "text",		
 		data: _json,
 		success: function(response,status,xhr) {
-			location.href = baseURL+"index.html?file="+comm.filename;
+			location.href = baseURL+"replay.html?file="+comm.filename;
 			console.log(_json);				
 		},
 		error: function(response,status,xhr){

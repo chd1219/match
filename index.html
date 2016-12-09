@@ -2,266 +2,42 @@
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-<title> 象棋微学堂智能对弈系统</title>
-	<script type="text/javascript">
-		var phoneWidth = parseInt(window.screen.width);
-		var phoneScale = phoneWidth/640;
-		var ua = navigator.userAgent;
-		if (/Android (\d+\.\d+)/.test(ua)){
-			var version = parseFloat(RegExp.$1);
-			// andriod 2.3
-			if(version>2.3){
-				document.write('<meta name="viewport" content="width=640, minimum-scale = '+phoneScale+', maximum-scale = '+phoneScale+', target-densitydpi=device-dpi">');
-				// andriod 2.3以上
-			}else{
-				document.write('<meta name="viewport" content="width=640, target-densitydpi=device-dpi">');
-			}
-			// 其他系统
-		} else {
-			document.write('<meta name="viewport" content="width=640, user-scalable=no, target-densitydpi=device-dpi">');
-		}
-	</script>
-    <link href="./css/chess.css" rel="stylesheet" type="text/css"> 
-	
+<title> 象棋微学堂 </title>
+    <link href="./css/menu.css" rel="stylesheet" type="text/css"> 
+	<script src="libs/jquery-2.1.0.min.js"></script>   
+	<script src="js/settings.js"></script>
     <script type="application/javascript">
-        var canvas, stage, exportRoot;
-        var chessLayer,chessTopLayer,chessBottonLayer;
-
-        var MODE_PLAY = 1;
-        var MODE_REPLAY = 2;
-		var MODE_BILL = 3;
-        var mode = 1;
-		var playmode = 1;
-        var file,level_id = -1;
-        var chapterTitle = '';
-		//var baseURL = 'http://localhost/match/';
-		var baseURL = 'http://chd.xueyunkeji.com/match/'; 
-        var REPLAY_GET_URL = baseURL+'/save/';
-        var REPLAY_SAVE_URL = REPLAY_GET_URL;	
-        
-		var CDN_PATH = '';
-        var JS_VER_COMBINED = 'combined';
-        var JS_VER_MIN = 'min';
-        var JS_VER = JS_VER_MIN;
-
-    </script>
-	
-    <script src="libs/preloadjs-0.6.1.min.js"></script>
-    
-	<script>
-
-        var startLoadTime = 0;
-        var fullLoadTime = 0;
-
+        var canvas, stage, exportRoot;       
+ 
         function init() {
-
-            var date = new Date();
-            startLoadTime = date.getTime();
-
-            var loader = new createjs.LoadQueue(false,null,"");
-
-            loader.addEventListener("fileload", handleFileLoad);
-            loader.addEventListener("complete", handleComplete);
-
-            loader.loadFile({src:CDN_PATH+"libs/easeljs-0.8.1."+JS_VER+".js"});
-            loader.loadFile({src:CDN_PATH+"libs/tweenjs-0.6.1."+JS_VER+".js"});
-            loader.loadFile({src:CDN_PATH+"libs/movieclip-0.8.1."+JS_VER+".js"});
-            loader.loadFile({src:CDN_PATH+"libs/soundjs-0.6.1."+JS_VER+".js"});
-            loader.loadFile({src:CDN_PATH+"libs/jquery-2.1.0.min.js"});
-            loader.loadFile({src:CDN_PATH+"libs/md5.min.js"});
-            loader.loadFile({src:CDN_PATH+"libs/reconnecting-websocket.min.js"});
-            loader.loadFile({src:CDN_PATH+"js/ScaleBitmap.min.js"});
-            loader.loadFile({src:CDN_PATH+"js/AI.js"});
-            loader.loadFile({src:CDN_PATH+"js/bill.js"});
-            loader.loadFile({src:CDN_PATH+"js/play.js"});
-            loader.loadFile({src:CDN_PATH+"js/output.min.v7.js"});
-            loader.loadFile({src:CDN_PATH+"assets/images/chess_slim_atlas_.json", type:"spritesheet", id:"chess_slim_atlas_"}, true);
-            loader.loadFile({src:CDN_PATH+"libs/gameRes.min.v1.js"});
-            loader.loadFile({src:CDN_PATH+"assets/images/f_atlas_.json", type:"spritesheet", id:"f_atlas_"}, true);
-            loader.loadManifest([{src:CDN_PATH+"assets/images/board2.png", id:"Board"}]);
+            $("#aiplayBtn").click(function(){
+				var href = baseURL+'aiplay.html';	
+				location.href = href;	
+			});
+            $("#billBtn").click(function(){
+				var href = baseURL+'bill.html';	
+				location.href = href;	
+			});
+            $("#onlineBtn").click(function(){
+				var href = baseURL+'online.html';	
+				location.href = href;	
+			});
         }
-		
-        function handleFileLoad(evt)
-        {
-            fileLoaded(evt);
-
-            if (evt.item.type == "image") { images[evt.item.id] = evt.result; }
-        }
-		
-        function handleComplete(evt)
-        {
-            var now = new Date();
-
-            fullLoadTime = now.getTime() - startLoadTime;
-            fullLoadTime = (fullLoadTime/1000).toFixed(1);
-
-            console.log('fullLoadTime',fullLoadTime);
-            //showTip('全部加载完毕。耗时ms：'+duration);
-
-            initLayer(evt);
-
-            var isIP4 = window.screen.height==480;
-
-            if(isIP4)
-            {
-                if(getEnv() == 'qq')
-                {
-                    $('#chessBox').css('bottom','-10px');
-                    $('#AIThink').css('top','0px');
-                }else if(getEnv() == 'weixin')
-                {
-                    $('#AIThink').css('top','2%');
-                    $('#chessBox').css('bottom','0.2%');
-                }
-            }else{
-                if(getEnv() == 'qq')
-                {
-                    $('#chessBox').css('bottom','3%');
-                    $('#AIThink').css('top','5%');
-                }
-            }
-        }
-
-        var fileTotal = 16;
-        var fileCurrent = 0;
-
-        function fileLoaded(event)
-        {
-            fileCurrent++;
-
-            var per = Math.min(Math.round(fileCurrent/fileTotal*100),100);
-            document.getElementById('percent').innerText = ('加载中...'+per+'%');
-
-        }
-
     </script>
 </head>
 
 <body onload="init()">
-	<div id="AIThink">对方正在思考中...</div>
-
     <canvas id="chess" width="640" height="1023"></canvas>
-    <div id="tipsInfo">	象棋微学堂智能对弈系统	</div>	
-	<div id="noteInfo"></div>
-	
-	<div id="notedialog" class="notedialog" style="display: none;font-size: x-large;">注释
-		<div>
-			<div>
-				<textarea id="notetext" cols="38" rows="10" style="font-size: x-large;background-color:#6A4C30;color: #BFA28A;">请输入注解，最多100字</textarea>
-				
-			</div>
-			<div>
-				<input type="button"  class="btn_dialog_cancle"  value="">
-				<input type="button"  class="btn_dialog_save"  value="">
-			</div>
-		</div>
-	</div>
-	
-	<div id="restartdialog" class="restartdialog" style="display: none;">是否重来？
-		<div>				
-			<input type="button"  class="btn_dialog_cancle" value="">
-			<input type="button"  class="btn_dialog_ok" value="">
-		</div>
-	</div>
-	
-	<div id="settingdialog" class="settingdialog" style="display: none;">
-
-		<div>	
-			<input type="radio"  name ="fruit" value="1" checked="checked">红（自己）VS 黑（自己）
-			<br>
-			<br>
-			<br>
-			<input type="radio"  name ="fruit" value="2">红（自己）VS 黑（电脑）
-			<br>
-			<br>
-			<br>
-			<input type="radio"  name ="fruit" value="3">红（电脑）VS 黑（自己）
-			<br>
-			<br>
-			<br>
-			<input type="radio"  name ="fruit" value="4">红（电脑）VS 黑（电脑）
-			<br>
-			<br>
-			<br>
-			
-			<input type="button"  class="btn_dialog_cancle" value="">
-			<input type="button"  class="btn_dialog_ok" value="">
-	
-			<!--img class='inner' src='./assets/images/setting1.png' /-->
-		</div>		
-	</div>
-	
-	<div id="replaydialog" class="replaydialog" style="display: none;">是否回放？
-		<div>				
-			<input type="button"  class="btn_dialog_cancle" value="">
-			<input type="button"  class="btn_dialog_ok" value="">
-		</div>
-	</div>
-	
-	<div id="nextstepdialog" class="nextstepdialog" style="display: none;">
-		
-	</div>
-	
-	
-	
-	<div id="gameResult">
-		<div id="gameWin">
-		</div>
-		<div id="gameLose">
-		</div>
-		<div id="resultBg">
-		</div>
+	<div id="bg" style="text-align: center">
+		<img src="assets/images/board2.png">
 	</div>
 	<div id="chessBox">
-		<div id="btnBox">
+		<div id="btnBox">			
 			<div id="mode1">
-				<input type="button" id="restartBtn" class="btnBase restartBtn">
-				<input type="button" id="regretBtn" class="btnBase regretBtn">
-				<input type="button" id="sendBtn" value="">
-				<input type="button" id="createBtn" class="btnBase createBtn">
+				<input type="button" id="aiplayBtn">
+				<input type="button" id="billBtn">
+				<input type="button" id="onlineBtn">
 			</div>
-			<div id="mode2" style="display: none;">
-				<!-- 棋谱模式 -->
-				<input type="button" id="replayBtn" class="btnBase replayBtnDisable">
-				<input type="button" id="prevBtn" class="btnBase prevBtnDisable">
-				<input type="button" id="nextBtn" class="btnBase nextBtn">
-				<input type="button" id="moreBtn2" class="btnBase moreBtn2">
-			</div>
-			<div id="mode3" style="display: none;">
-				<input type="button" id="sendBtn" value="">
-				<input type="button" id="moreBtn3" class="btnBase moreBtn3">
-			</div>
-			<div id="mode4" style="display: none;">
-				<!-- 棋谱模式 -->
-				<input type="button" id="settingBtn" value="">
-				<input type="button" id="noteBtn" value="">
-				<input type="button" id="reverseBtn" value="" style="display: none;">
-				<input type="button" id="prevBtn2" class="btnBase prevBtn2Disable">
-				<input type="button" id="nextBtn2" class="btnBase nextBtn2">				                  
-				<input type="button" id="sendBtn2" value="">
-				<input type="button" id="moreBtn4" class="btnBase moreBtn4">
-			</div>
-			<div id="mode5" style="display: none;">
-				<!-- 棋谱模式 -->
-				<input type="button" id="fullBtn" value="">
-				<input type="button" id="clearBtn" value="">
-				<input type="button" id="saveBtn" value="">
-			</div>
-		</div>
-	</div>
-	<div id="cover" class="cover" onclick="hideMask();">
-		<div class="coverTips">
-		</div>
-		<div id="coverMask" class="coverMask">
-		</div>
-	</div>	
-	<div id="loading" class="loading">
-		<div class="loadingInfo">
-			<div class="logo">
-			</div>
-			<span id="percent" class="percent">
-				加载中...
-			</span>
 		</div>
 	</div>
 </body>

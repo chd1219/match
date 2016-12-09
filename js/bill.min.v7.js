@@ -56,14 +56,14 @@ function hideDiv(div_id) {
 	}, 
 	"slow");  	
 }    
-var ws = null;
+var ws;
 function initWebsocket(){
 
 	var wsImpl = window.WebSocket || window.MozWebSocket;
 	// create a new websocket and connect
 	//window.ws = new wsImpl('ws://121.43.37.233:8183/');
-	window.ws = new ReconnectingWebSocket('ws://121.43.37.233:8183/');
-	//window.ws = new wsImpl('ws://127.0.0.1:8180/');
+	//window.ws = new ReconnectingWebSocket('ws://121.43.37.233:8182/');
+	window.ws = new wsImpl('ws://127.0.0.1:8282/');
 
 	if (ws.readyState == 3) {
 		alert("连接服务器失败");
@@ -107,7 +107,6 @@ var heartCheck = {
 }
 
 function sendPosition(e){
-	if(!ws) return;
 	ws.send(e);
 	$("#AIThink").show();
 }
@@ -226,7 +225,7 @@ function loadConfig() {
 			comm.parseNote(serverData.notes);
 			comm.initChessEx(a, m);			
 			bill.replayBtnUpdate(),
-			mode = 4;
+			mode = MODE_BILL;
 			showBtns();
 		}
 		else{
@@ -248,10 +247,11 @@ function loadConfig() {
 		}        
     })    
     else {
-        comm.initChess(comm.initMap),
-        mode = MODE_PLAY;
+        comm.initChess(comm.initMap);
+       // mode = MODE_PLAY;
         var m = comm.getMap4Server(comm.initMap);
-        requestServerStart(m)
+        requestServerStart(m);
+		if(mode == 5) bill.create();
     }
 }
 function requestServerStart(e) {
@@ -304,7 +304,7 @@ function hideLoading() {
     $("#loading").hide()
 }
 function showBtns() {
-    $("#mode1").hide();
+	$("#mode1").hide();
 	$("#mode2").hide();
 	$("#mode3").hide();
 	$("#mode4").hide();
@@ -326,7 +326,7 @@ function showBtns() {
 			$("#mode5").show();
 			break;			
 	}   
-    $("#btnBox").show()
+    $("#btnBox").show();
 }
 function showResult(e) {
     e ? ($("#gameLose").hide(), $("#gameWin").show(), $("#mode1").hide(), $("#mode2").hide(), $("#mode3").show()) : ($("#gameLose").show(), $("#gameWin").hide(), setEnable("regretBtn", !1)),
@@ -592,8 +592,8 @@ comm.initChess = function(e, a) {
     initDots(),
     intiPane(),
     initLight(),
-    showBtns();
-	//initWebsocket()
+    showBtns(),
+	initWebsocket()
 };
 comm.initChessEx = function(e, a) {
     play.isPlay = !0;
@@ -814,7 +814,7 @@ comm.onload = function() {
     $("#sendBtn").click(comm.send),
 	$("#prevBtn2").click(bill.replayPrev),
     $("#nextBtn2").click(bill.replayNext),
-	$("#returnBtn1").click(moreBtn),
+    $("#returnBtn1").click(moreBtn),
     $("#returnBtn2").click(moreBtn),
     $("#returnBtn3").click(moreBtn),
 	$("#returnBtn4").click(moreBtn),
@@ -824,7 +824,7 @@ comm.onload = function() {
 	$("#sendBtn2").click(bill.send),
 	$("#fullBtn").click(bill.fullBroad),
 	$("#clearBtn").click(bill.cleanBroad),				
-	$("#saveBtn").click(bill.save);	
+	$("#saveBtn").click(bill.save);		
 };
 comm.showPane = function(e, a, m, o) {
     comm.box1.visible = !0,
