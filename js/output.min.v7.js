@@ -761,35 +761,6 @@ comm.getMoves6Server = function() {
 comm.onGameEnd = function(e) {
     if (1 == e) {
         comm.isWin = 1;
-        var a = {};
-        a.map = comm.moves4Server,
-        a.moves = comm.getMoves4Server();
-        var m = -1;
-        serverData.head && (m = serverData.head.id),
-        a.head = {
-            id: m,
-            totalMove: a.moves.length
-        },
-        serverData.meta ? a.meta = serverData.meta: a.meta = {},
-        a.meta.FUPAN_TITLE = chapterTitle,
-        a.meta.FUPAN_JSON_FROM = "H5",
-        console.log("toServerData", a),
-        console.log(JSON.stringify(a));
-        var o = JSON.stringify(a);
-        comm.filename = window.md5(o),
-        comm.movesNum = a.moves.length;
-        var n = REPLAY_SAVE_URL + "?filename=" + comm.filename + "&filetype=1";
-        $("#sendBtn").hide(),
-        $.ajax({
-            type: "POST",
-            url: n,
-            dataType: "text",
-            async: !1,
-            success: function(e) {
-                "OK" == e && comm.showSendBtn()
-            },
-            data: o
-        })
     } else comm.isWin = 0;
     canRestart = !0
 };
@@ -874,9 +845,7 @@ comm.send = function(e) {
 		showFloatTip("还没开始下棋呢");
 		return;
 	}
-		
-	var n = REPLAY_SAVE_URL + comm.filename;
-	//$("#sendBtn").hide(),
+
 	var map = comm.getMap6Server(comm.initMap);
 	var moves = comm.getMoves6Server();
 	var _json = {"map": map, "moves":moves, "filename":comm.filename};
