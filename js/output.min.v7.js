@@ -109,7 +109,6 @@ var heartCheck = {
 function sendPosition(e){
 	if(!ws) return;
 	ws.send(e);
-	$("#AIThink").show();
 }
 
 function addChess(e) {
@@ -228,6 +227,7 @@ function loadConfig() {
 			bill.replayBtnUpdate(),
 			mode = 4;
 			showBtns();
+			$("#sendBtn2").hide();
 		}
 		else{
 			var a;
@@ -309,23 +309,7 @@ function showBtns() {
 	$("#mode3").hide();
 	$("#mode4").hide();
 	$("#mode5").hide();
-	switch(mode){
-		case 1:
-			$("#mode1").show();
-			break;
-		case 2:
-			$("#mode2").show();
-			break;
-		case 3:
-			$("#mode3").show();
-			break;		
-		case 4:
-			$("#mode4").show();
-			break;		
-		case 5:
-			$("#mode5").show();
-			break;			
-	}   
+	(mode == 1 && $("#mode1").show()) || (mode == 2 && $("#mode2").show()) || (mode == 3 && $("#mode3").show()) || (mode == 4 && $("#mode4").show()) || (mode == 5 && $("#mode5").show());
     $("#btnBox").show()
 }
 function showResult(e) {
@@ -612,8 +596,7 @@ var fullMap, fullMoves, moves = [],
 movesIndex = 0,
 movesTipsShow = !0,
 reverseMode = 0,
-movesInterval,
-autoset;
+movesInterval;
 comm.restart = function() {
 	popupDiv('restartdialog');		
 		$("#restartdialog").on('click', '.btn_dialog_cancle', function () {          
@@ -630,10 +613,9 @@ comm.restart = function() {
                 });		
 	
 },
-comm.autoPlay = function() {
-	play.autoPlay();
-	autoset = setInterval(play.autoPlay, 2000);
-}
+comm.soundplay = function(e) {
+	createjs.Sound.play(e);
+},
 comm.replayNext = function() {
     clearInterval(movesInterval),
     movesTipsShow && (movesIndex = 0, comm.replayTipHide(), movesTipsShow = !1),

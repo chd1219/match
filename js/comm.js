@@ -10,19 +10,33 @@ function popupDiv(div_id) {
 	// 取得传入DIV的长度      
 	var popupWidth = $div_obj.width();            
 	// // 添加并显示遮罩层      
-
-	$("<div id='bg'></div>").width(windowWidth * 0.99)          
-						.height(windowHeight * 0.99).click(function() {           
-							hideDiv(div_id);          
-						}).appendTo("body").fadeIn(200);
-	// 显示弹出的DIV      
-	$div_obj.css({  "position" : "absloute"   	})
-		.animate({    
-		left : windowWidth / 2 - popupWidth / 2,        
-		top : windowHeight / 2 - popupHeight / 2,        
-		opacity : "show"      
-		}, "slow");     
-
+	if	(div_id == "nextstepdialog"){
+		$("<div id='bg1'></div>").width(windowWidth * 0.99)          
+							.height(windowHeight * 0.99).click(function() {           
+								hideDiv(div_id); 
+								bill.cleanLine();								
+							}).appendTo("body").fadeIn(200);
+		$div_obj.css({  "position" : "absloute"   	})
+			.animate({    
+			left : windowWidth / 2 - popupWidth / 2,        
+			top : (windowHeight  - popupHeight ) * 0.90,        
+			opacity : "show"      
+			}, "slow");     
+	}
+	else{
+		$("<div id='bg'></div>").width(windowWidth * 0.99)          
+							.height(windowHeight * 0.99).click(function() {           
+								hideDiv(div_id);          
+							}).appendTo("body").fadeIn(200);
+		// 显示弹出的DIV      
+		$div_obj.css({  "position" : "absloute"   	})
+			.animate({    
+			left : windowWidth / 2 - popupWidth / 2,        
+			top : windowHeight / 2 - popupHeight / 2,        
+			opacity : "show"      
+			}, "slow");     
+	}		
+	     
 }    
 /*隐藏弹出DIV*/    
 function hideDiv(div_id) {     
@@ -44,13 +58,10 @@ function hideDiv(div_id) {
 }    
 var ws = null;
 function initWebsocket(){
-
 	var wsImpl = window.WebSocket || window.MozWebSocket;
 	// create a new websocket and connect
 	//window.ws = new wsImpl('ws://121.43.37.233:8183/');
-	window.ws = new ReconnectingWebSocket('ws://121.43.37.233:8181/');
-	//window.ws = new wsImpl('ws://127.0.0.1:8180/');
-
+	window.ws = new ReconnectingWebSocket('ws://121.43.37.233:8183/');
 	if (ws.readyState == 3) {
 		alert("连接服务器失败");
 	}
@@ -60,19 +71,16 @@ function initWebsocket(){
 		play.ParseMsg(evt.data);	
 		console.log(evt.data);
 	};
-
 	// when the connection is established, this method is called
 	ws.onopen = function () {
 		heartCheck.start();
 	};
-
 	// when the connection is closed, this method is called
 	ws.onclose = function () {
 		//alert("onclose");
 		//reconnect();
 	}	
-	
-	// when the connection is error, this method is called
+		// when the connection is error, this method is called
 	ws.onerror = function () {
 		//alert("onerror");
 		//reconnect();
@@ -91,13 +99,10 @@ var heartCheck = {
         }, this.timeout)
     }
 }
-
 function sendPosition(e){
 	if(!ws) return;
 	ws.send(e);
-	$("#AIThink").show();
 }
-
 function addChess(e) {
     e || (e = "c");
     var a = new createjs.Container,
@@ -201,22 +206,38 @@ function loadConfig() {
     $.getJSON(e,
     function(e) {
 		$("#reverseBtn").show();
-        serverData = e;		
-		var a;
-		serverData.map ? ($("#moreBtn2").addClass("moreBtn2"), $("#moreBtn2").removeClass("moreBtn4"), comm.isPVP = !1, a = comm.parseMap(serverData.map)) : ($("#moreBtn2").addClass("moreBtn4"), $("#moreBtn2").removeClass("moreBtn2"), comm.isPVP = !0, comm.pvpTitle = serverData.meta.FUPAN_GAMESCENE_NAME, a = comm.initMap.concat(), 1 == serverData.meta.FUPAN_CHESS_COLOR && a.reverse()),
-		serverData.meta && serverData.meta.FUPAN_TITLE ? chapterTitle = serverData.meta.FUPAN_TITLE: (chapterTitle = "空章节标题", console.log(chapterTitle)),
-		document.title = chapterTitle;
-		var m = comm.parseMoves(serverData.moves);
-		comm.movesNum = m.length,
-		comm.initChess(a, m);
-		var o = new res.ReplayTip;
-		o.x = 116,
-		o.y = 296,
-		comm.chessTopLayer.parent.addChild(o),
-		comm.replayTip = o,
-		comm.replayBtnUpdate(),
-		mode = MODE_REPLAY;
-		showBtns();       
+        serverData = e;
+		if(serverData.BillType){
+			var a;
+			serverData.map ? ($("#moreBtn2").addClass("moreBtn2"), $("#moreBtn2").removeClass("moreBtn4"), comm.isPVP = !1, a = comm.parseMap(serverData.map)) : ($("#moreBtn2").addClass("moreBtn4"), $("#moreBtn2").removeClass("moreBtn2"), comm.isPVP = !0, comm.pvpTitle = serverData.meta.FUPAN_GAMESCENE_NAME, a = comm.initMap.concat(), 1 == serverData.meta.FUPAN_CHESS_COLOR && a.reverse()),
+			serverData.meta && serverData.meta.FUPAN_TITLE ? chapterTitle = serverData.meta.FUPAN_TITLE: (chapterTitle = "空章节标题", console.log(chapterTitle)),
+			document.title = chapterTitle;
+			var m = comm.parseMovesEx(serverData.moves);
+			comm.movesNum = m.length,
+			comm.parseNote(serverData.notes);
+			comm.initChessEx(a, m);			
+			bill.replayBtnUpdate(),
+			mode = 4;
+			showBtns();
+			$("#sendBtn2").hide();
+		}
+		else{
+			var a;
+			serverData.map ? ($("#moreBtn2").addClass("moreBtn2"), $("#moreBtn2").removeClass("moreBtn4"), comm.isPVP = !1, a = comm.parseMap(serverData.map)) : ($("#moreBtn2").addClass("moreBtn4"), $("#moreBtn2").removeClass("moreBtn2"), comm.isPVP = !0, comm.pvpTitle = serverData.meta.FUPAN_GAMESCENE_NAME, a = comm.initMap.concat(), 1 == serverData.meta.FUPAN_CHESS_COLOR && a.reverse()),
+			serverData.meta && serverData.meta.FUPAN_TITLE ? chapterTitle = serverData.meta.FUPAN_TITLE: (chapterTitle = "空章节标题", console.log(chapterTitle)),
+			document.title = chapterTitle;
+			var m = comm.parseMoves(serverData.moves);
+			comm.movesNum = m.length,
+			comm.initChess(a, m);
+			var o = new res.ReplayTip;
+			o.x = 116,
+			o.y = 296,
+			comm.chessTopLayer.parent.addChild(o),
+			comm.replayTip = o,
+			comm.replayBtnUpdate(),
+			mode = MODE_REPLAY;
+			showBtns();
+		}        
     })    
     else {
         comm.initChess(comm.initMap),
@@ -226,32 +247,57 @@ function loadConfig() {
     }
 }
 function requestServerStart(e) {
-    e = e || serverData.map;
-    var a = {
-        Piece: e
-    };
-    SAI(1, a, onAct, onFault)
-}
-function onAct(e) {
-    comm.playid = e.playid,
-    comm.seq = e.seq
-}
-function SAI(e, a, m, o) {
-    
-}
 
-function onFault(e, a) {
-    0 == e && (1 == a ? (play.isPlay = !1, showFloatTip("服务器连接初始错误，请稍后重试。", 12e4)) : (backUserMove(), showFloatTip("网络错误，请稍后重试。")))
-}
-function backUserMove() {
-    regret(1),
-    play.hideThink()
-}
+};
 function loadSound(e) {
     fileLoaded(e)
 }
+function initCanvas(e){
+	canvas = document.getElementById("chess"),
+    images = images || {},
+    ss = ss || {},
+    createjs.Sound.alternateExtensions = ["mp3"],
+    createjs.Sound.on("fileload", loadSound),
+    createjs.Sound.registerSound(CDN_PATH + "assets/audio/select.mp3", "select"),
+    createjs.Sound.registerSound(CDN_PATH + "assets/audio/drop.mp3", "drop"),
+    createjs.Sound.registerSound(CDN_PATH + "assets/audio/gamelose.mp3", "gamelose"),
+    createjs.Sound.registerSound(CDN_PATH + "assets/audio/gamewin.mp3", "gamewin");
+    var a = e.target;
+    ss.chess_slim_atlas_ = a.getResult("chess_slim_atlas_"),
+    exportRoot = new lib.chess_slim,
+    ss.f_atlas_ = a.getResult("f_atlas_"),
+    new res.f,
+    stage = new createjs.Stage(canvas),
+    stage.addChild(exportRoot),
+    stage.update(),
+    createjs.Touch.enable(stage),
+    stage.on("stagemousedown", stageClick),
+    chessLayer = comm.chessLayer = new createjs.Container,
+    chessLayer.mouseEnabled = !1,
+    chessLayer.mouseChildren = !1,
+    chessTopLayer = comm.chessTopLayer = new createjs.Container,
+    chessTopLayer.mouseEnabled = !1,
+    chessTopLayer.mouseChildren = !1,
+    chessBottonLayer = comm.chessBottonLayer = new createjs.Container,
+    chessBottonLayer.mouseEnabled = !1,
+    chessBottonLayer.mouseChildren = !1,
+    chessTopLayer.x = chessLayer.x = 0,
+    chessTopLayer.y = chessLayer.y = 0,
+    stage.addChild(chessBottonLayer),
+    stage.addChild(chessLayer),
+    stage.addChild(chessTopLayer),
+    createjs.Ticker.setFPS(lib.properties.fps),
+    createjs.Ticker.addEventListener("tick", stage),
+	createjs.Ticker.addEventListener("tick", enterFrame),	
+	setTimeout(hideLoading, 200),	
+    commTipsImg = new Image,
+    commTipsImg.src = "assets/images/commTips.png";	
+	comm.init();
+}
 function stageClick(e) {
-    mode == MODE_PLAY && play.clickCanvas(e)
+    mode == MODE_PLAY && play.clickCanvas(e),
+    mode == MODE_REPLAY && comm.clickCanvas(e),
+	(mode == MODE_BILL && serverData.BillType != 1 && bill.BillType != 1) && bill.clickCanvas(e)
 }
 function enterFrame() {
     var e = new Date,
@@ -273,6 +319,12 @@ function hideLoading() {
     $("#loading").hide()
 }
 function showBtns() {
+    $("#mode1").hide();
+	$("#mode2").hide();
+	$("#mode3").hide();
+	$("#mode4").hide();
+	$("#mode5").hide();
+	(mode == 1 && $("#mode1").show()) || (mode == 2 && $("#mode2").show()) || (mode == 3 && $("#mode3").show()) || (mode == 4 && $("#mode4").show()) || (mode == 5 && $("#mode5").show());
     $("#btnBox").show()
 }
 function showResult(e) {
@@ -282,7 +334,7 @@ function showResult(e) {
 function hideResult() {
     $("#gameResult").hide()
 }
-function initLayer(e) {
+function initLayer1(e) {
     canvas = document.getElementById("chess"),
     images = images || {},
     ss = ss || {},
@@ -401,11 +453,19 @@ function checkIsFinalKill(o) {
     return console.log("checkIsFinalKill pace", e),
     (play.my == 1) ? (e ? void 0 : void play.onGameEnd( - 1, !0)) : (e ? void 0 : void play.onGameEnd( 1, !0))
 }
-
 var serverData = serverData || {},
 comm = comm || {};
+var fullMap, fullMoves, moves = [],
+movesIndex = 0,
+movesTipsShow = !0,
+reverseMode = 0,
+movesInterval,
+autoset;
+var canRestart = !1;var lastTime = 0,
+commTipsImg;var Dots = {};
+comm.emptyMap = [[, , , , , , , ,"" ], [, , , , , , , , ""], [, , , , , , , , ""], [, , , , , , , , ""], [, , , , , , , , ""], [, , , , , , , , ""], [, , , , , , , , ""], [, , , , , , , , ""], [, , , , , , , , ""], [, , , , , , , , ""]];
+comm.initMap = [["C0", "M0", "X0", "S0", "J0", "S1", "X1", "M1", "C1"], [, , , , , , , , ""], [, "P0", , , , , , "P1","",], ["Z0", , "Z1", , "Z2", , "Z3", , "Z4"], [, , , , , , , , ""], [, , , , , , , , ""], ["z0", , "z1", , "z2", , "z3", , "z4"], [, "p0", , , , , , "p1",""], [, , , , , , , , ""], ["c0", "m0", "x0", "s0", "j0", "s1", "x1", "m1", "c1"]],
 comm["class"] = comm["class"] || {};
-var Dots = {};
 comm["class"].Man = function(e, a, m) {
     this.pater = e.slice(0, 1);
     var o = comm.args[this.pater];
@@ -472,14 +532,8 @@ comm.init = function(e) {
     comm.pointStartX = 32,
     comm.pointStartY = 29+150
 },
-comm.id2name = {
-    16 : "J",    17 : "S",    18 : "X",    19 : "M",    20 : "C",    21 : "P",    22 : "Z",    
-	8 : "j",    9 : "s",    10 : "x",    11 : "m",    12 : "c",    13 : "p",    14 : "z"
-},
-comm.name2id = {
-    J: 16,    S: 17,    X: 18,    M: 19,    C: 20,    P: 21,    Z: 22,
-    j: 8,    s: 9,    x: 10,    m: 11,    c: 12,    p: 13,    z: 14
-},
+comm.id2name = {16 : "J", 17 : "S", 18 : "X", 19 : "M", 20 : "C", 21 : "P", 22 : "Z", 8 : "j", 9 : "s", 10 : "x", 11 : "m", 12 : "c", 13 : "p", 14 : "z"},
+comm.name2id = {J: 16, S: 17, X: 18, M: 19, C: 20, P: 21, Z: 22, j: 8, s: 9, x: 10, m: 11, c: 12, p: 13, z: 14},
 comm.parseMap = function(e) {
     for (var a = e,
     m = comm.emptyMap.concat(), o = {},
@@ -491,6 +545,15 @@ comm.parseMap = function(e) {
         m[comm.reverseY(t.y - 1)][t.x - 1] = r
     }
     return m
+},
+comm.notes = [],
+comm.parseNote = function(e) {
+    for (var a = e,
+    n = 0; n < a.length; n++) {
+        var t = a[n].id+1;
+		bill.notes.length = t,
+		bill.notes[t-1] = a[n].note;        
+    }	
 },
 comm.parseMoves = function(e) {
     for (var a = e,
@@ -506,6 +569,19 @@ comm.parseMoves = function(e) {
     delete a[m].order;
     return a
 },
+comm.parseMovesEx = function(e) {
+    for (var a = [],m = 0; m < e.length; m++) {
+		if(a[e[m].index]){
+			a[e[m].index].push([e[m].step,e[m].id,e[m].perid]);
+		}
+		else{
+			a[e[m].index] = new Array();
+			a[e[m].index].push([e[m].step,e[m].id,e[m].perid]);
+		}		
+	}
+	bill.paceEx = a;
+    return a
+},
 comm.initChess = function(e, a) {
     play.isPlay = !0;
     var e = e || comm.initMap;
@@ -518,14 +594,21 @@ comm.initChess = function(e, a) {
     intiPane(),
     initLight(),
     showBtns();
-	initWebsocket()
+	//initWebsocket()
 };
-var fullMap, fullMoves, moves = [],
-movesIndex = 0,
-movesTipsShow = !0,
-reverseMode = 0,
-movesInterval,
-autoset;
+comm.initChessEx = function(e, a) {
+    play.isPlay = !0;
+    var e = e || comm.initMap;
+    fullMoves = a || [],
+    fullMap = e.concat(),
+    moves = fullMoves.concat(),
+	bill.init(3, e, !0);
+    intiBoard(),
+    initDots(),
+    intiPane(),
+    initLight(),
+    showBtns()
+};
 comm.restart = function() {
 	popupDiv('restartdialog');		
 		$("#restartdialog").on('click', '.btn_dialog_cancle', function () {          
@@ -542,10 +625,9 @@ comm.restart = function() {
                 });		
 	
 },
-comm.autoPlay = function() {
-	play.autoPlay();
-	autoset = setInterval(play.autoPlay, 2000);
-}
+comm.soundplay = function(e) {
+	createjs.Sound.play(e);
+},
 comm.replayNext = function() {
     clearInterval(movesInterval),
     movesTipsShow && (movesIndex = 0, comm.replayTipHide(), movesTipsShow = !1),
@@ -672,28 +754,16 @@ comm.getMoves6Server = function() {
 },
 comm.onGameEnd = function(e) {
     if (1 == e) {
-        comm.isWin = 1;      
+        comm.isWin = 1;
     } else comm.isWin = 0;
     canRestart = !0
 };
-var canRestart = !1;
 comm.showSendBtn = function() {
     console.log("showSendBtn"),
     $("#sendBtn").show()
 },
 comm.onload = function() {
-    comm.dot = {
-        dots: []
-    },
-    comm.mans = {},
-    $("#regretBtn").click(play.regret),    
-    $("#restartBtn").click(comm.restart),  
-	$("#returnBtn1").click(moreBtn),
-    $("#returnBtn2").click(moreBtn),
-    $("#returnBtn3").click(moreBtn),
-	$("#returnBtn4").click(moreBtn),
-    $("#returnBtn").click(moreBtn);	 	
-    $("#sendBtn").click(comm.send);
+    
 };
 comm.showPane = function(e, a, m, o) {
     comm.box1.visible = !0,
@@ -777,33 +847,7 @@ comm.arrReverse = function(e) {
     for (var a = [], m = 0; m < e.length; m++) a[m] = e[e.length-1-m].reverse().slice();
     return a
 },
-//ajax载入数据
-comm.getData = function (url,fun){
-	var XMLHttpRequestObject=false;
-	if(window.XMLHttpRequest){
-		XMLHttpRequestObject=new XMLHttpRequest();
-	}else if(window.ActiveXObject){
-		XMLHttpRequestObject=new ActiveXObject("Microsoft.XMLHTTP");
-	}
-	if(XMLHttpRequestObject){
-		XMLHttpRequestObject.open("GET",url);
-		XMLHttpRequestObject.setRequestHeader('Content-Type','application/x-www-form-urlencoded');
-		XMLHttpRequestObject.onreadystatechange=function (){
-			if(XMLHttpRequestObject.readyState==4 && XMLHttpRequestObject.status==200){
-				fun (XMLHttpRequestObject.responseText)
-				//return XMLHttpRequestObject.responseText;
-			}
-		}
-	XMLHttpRequestObject.send(null);
-	}
-},
-comm.initMap = [["C0", "M0", "X0", "S0", "J0", "S1", "X1", "M1", "C1"], [, , , , , , , , ""], [, "P0", , , , , , "P1","",], ["Z0", , "Z1", , "Z2", , "Z3", , "Z4"], [, , , , , , , , ""], [, , , , , , , , ""], ["z0", , "z1", , "z2", , "z3", , "z4"], [, "p0", , , , , , "p1",""], [, , , , , , , , ""], ["c0", "m0", "x0", "s0", "j0", "s1", "x1", "m1", "c1"]],
-comm.keys = {
-    c0: "c",    c1: "c",    m0: "m",    m1: "m",    x0: "x",    x1: "x",    s0: "s",    s1: "s",    j0: "j",
-    p0: "p",    p1: "p",    z0: "z",    z1: "z",    z2: "z",    z3: "z",    z4: "z",    z5: "z",    C0: "c",
-    C1: "C",    M0: "M",    M1: "M",    X0: "X",    X1: "X",    S0: "S",    S1: "S",    J0: "J",    P0: "P",
-    P1: "P",    Z0: "Z",    Z1: "Z",    Z2: "Z",    Z3: "Z",    Z4: "Z",    Z5: "Z"
-},
+comm.keys = {c0: "c", c1: "c", m0: "m", m1: "m", x0: "x", x1: "x", s0: "s", s1: "s", j0: "j", p0: "p", p1: "p", z0: "z", z1: "z", z2: "z", z3: "z", z4: "z", z5: "z", C0: "c", C1: "C", M0: "M", M1: "M", X0: "X", X1: "X", S0: "S", S1: "S", J0: "J", P0: "P", P1: "P", Z0: "Z", Z1: "Z", Z2: "Z", Z3: "Z", Z4: "Z", Z5: "Z"},
 comm.bylaw = {},
 comm.bylaw.c = function(e, a, m, o) {
     for (var n = [], t = e - 1; t >= 0; t--) {
@@ -957,108 +1001,21 @@ comm.value.J = comm.value.j,
 comm.value.P = comm.arr2Clone(comm.value.p).reverse(),
 comm.value.Z = comm.arr2Clone(comm.value.z).reverse(),
 comm.args = {
-    c: {
-        text: "车",
-        img: "r_c",
-        my: 1,
-        bl: "c",
-        value: comm.value.c
-    },
-    m: {
-        text: "马",
-        img: "r_m",
-        my: 1,
-        bl: "m",
-        value: comm.value.m
-    },
-    x: {
-        text: "相",
-        img: "r_x",
-        my: 1,
-        bl: "x",
-        value: comm.value.x
-    },
-    s: {
-        text: "仕",
-        img: "r_s",
-        my: 1,
-        bl: "s",
-        value: comm.value.s
-    },
-    j: {
-        text: "将",
-        img: "r_j",
-        my: 1,
-        bl: "j",
-        value: comm.value.j
-    },
-    p: {
-        text: "炮",
-        img: "r_p",
-        my: 1,
-        bl: "p",
-        value: comm.value.p
-    },
-    z: {
-        text: "兵",
-        img: "r_z",
-        my: 1,
-        bl: "z",
-        value: comm.value.z
-    },
-    C: {
-        text: "車",
-        img: "b_c",
-        my: -1,
-        bl: "c",
-        value: comm.value.C
-    },
-    M: {
-        text: "馬",
-        img: "b_m",
-        my: -1,
-        bl: "m",
-        value: comm.value.M
-    },
-    X: {
-        text: "象",
-        img: "b_x",
-        my: -1,
-        bl: "x",
-        value: comm.value.X
-    },
-    S: {
-        text: "士",
-        img: "b_s",
-        my: -1,
-        bl: "s",
-        value: comm.value.S
-    },
-    J: {
-        text: "帅",
-        img: "b_j",
-        my: -1,
-        bl: "j",
-        value: comm.value.J
-    },
-    P: {
-        text: "炮",
-        img: "b_p",
-        my: -1,
-        bl: "p",
-        value: comm.value.P
-    },
-    Z: {
-        text: "卒",
-        img: "b_z",
-        my: -1,
-        bl: "z",
-        value: comm.value.Z
-    }
+    c: { text: "车", img: "r_c", my: 1, bl: "c", value: comm.value.c },
+    m: { text: "马", img: "r_m", my: 1, bl: "m", value: comm.value.m },
+    x: { text: "相", img: "r_x", my: 1, bl: "x", value: comm.value.x },
+    s: { text: "仕", img: "r_s", my: 1, bl: "s", value: comm.value.s },
+    j: { text: "将", img: "r_j", my: 1, bl: "j", value: comm.value.j },
+    p: { text: "炮", img: "r_p", my: 1, bl: "p", value: comm.value.p },
+    z: { text: "兵", img: "r_z", my: 1, bl: "z", value: comm.value.z },
+    C: { text: "車", img: "b_c", my: -1, bl: "c", value: comm.value.C },
+    M: { text: "馬", img: "b_m", my: -1, bl: "m", value: comm.value.M },
+    X: { text: "象", img: "b_x", my: -1, bl: "x", value: comm.value.X },
+    S: { text: "士", img: "b_s", my: -1, bl: "s", value: comm.value.S },
+    J: { text: "帅", img: "b_j", my: -1, bl: "j", value: comm.value.J },
+    P: { text: "炮", img: "b_p", my: -1, bl: "p", value: comm.value.P },
+    Z: { text: "卒", img: "b_z", my: -1, bl: "z", value: comm.value.Z }
 },
-comm.emptyMap = [[, , , , , , , ,"" ], [, , , , , , , , ""], [, , , , , , , , ""], [, , , , , , , , ""], [, , , , , , , , ""], [, , , , , , , , ""], [, , , , , , , , ""], [, , , , , , , , ""], [, , , , , , , , ""], [, , , , , , , , ""]];
-var lastTime = 0,
-commTipsImg;
 comm.getTips = function(e) {
     var e = new createjs.Text(e, "30px Arial", "#FFE5B4");
     e.x = 60,

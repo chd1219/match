@@ -1,4 +1,3 @@
-
 var bill = bill || {};
 bill.init = function(e, a, k) {
 	mode = MODE_BILL;	
@@ -63,8 +62,7 @@ bill.onChessDrop = function() {
         var m = removeOnDrops.splice(a, 1)[0];
         m.parent.removeChild(m)
     }
-    createjs.Sound.play("drop"),
-    bill.showThink(),
+    comm.soundplay("drop"),
     setTimeout(e, 200)
 },
 bill.addCallOnDrop = function(e, a) {
@@ -98,7 +96,7 @@ bill.send = function(e) {
 		return;
 	}
 		
-   var n = REPLAY_SAVE_URL + comm.filename;
+
 	var map = comm.getMap6Server(bill.cMap);
 	var moves = bill.getMoves6ServerEx();
 	var notes = bill.getNotes2Server();
@@ -165,11 +163,12 @@ bill.clickCanvas = function(e) {
     m = bill.getClickPoint(e),
     o = m.x,
     n = m.y;
-	if(a) bill.checkManDots(a);
+	//if(a) bill.checkManDots(a);
     a ? ((n < 0 || n > 9) ? (bill.clickMan2(a, o, n)) : bill.clickMan(a, o, n)) : bill.clickPoint(o, n);
 	
 	if (bill.isPlay == !0){		
 		bill.replayBtnUpdate();
+		play.showThink();
 	}
 },
 bill.clickMan2 = function(e, a, m) {
@@ -177,7 +176,7 @@ bill.clickMan2 = function(e, a, m) {
     var o = comm.mans[e];
 	
 	bill.nowManKey = e; 
-	first ? (createjs.Sound.play("drop"), first = !1) : createjs.Sound.play("select"), comm.light.x = comm.spaceX * o.x + comm.pointStartX - 20, comm.light.y = comm.spaceY * o.y + comm.pointStartY - 24, comm.light.visible = !0
+	first ? (comm.soundplay("drop"), first = !1) : comm.soundplay("select"), comm.light.x = comm.spaceX * o.x + comm.pointStartX - 20, comm.light.y = comm.spaceY * o.y + comm.pointStartY - 24, comm.light.visible = !0
 
 };
 bill.clickMan = function(e, a, m) {
@@ -206,7 +205,7 @@ bill.clickMan = function(e, a, m) {
 					from: s,
 					to: r
 				};
-				bill.addCallOnDrop(SAI, [2, c, onReqMove, onFault]),
+				//bill.addCallOnDrop(SAI, [2, c, onReqMove, onFault]),
 				comm.mans[bill.nowManKey].x = a,
 				comm.mans[bill.nowManKey].y = m,
 				comm.mans[bill.nowManKey].alpha = 1,
@@ -238,7 +237,7 @@ bill.clickMan = function(e, a, m) {
 			comm.mans[e].ps = comm.mans[e].bl(), 
 			comm.dot.dots = comm.mans[e].ps,
 			(bill.isPlay == !0) ? (comm.showDots()):(comm.hideDots()), 
-			first ? (createjs.Sound.play("drop"), first = !1) : createjs.Sound.play("select"), comm.light.x = comm.spaceX * o.x + comm.pointStartX - 20, comm.light.y = comm.spaceY * o.y + comm.pointStartY - 24, comm.light.visible = !0)
+			first ? (comm.soundplay("drop"), first = !1) : comm.soundplay("select"), comm.light.x = comm.spaceX * o.x + comm.pointStartX - 20, comm.light.y = comm.spaceY * o.y + comm.pointStartY - 24, comm.light.visible = !0)
 		}
     } 
 	else if (bill.isPlay ? o.my == bill.my : !0){
@@ -247,7 +246,7 @@ bill.clickMan = function(e, a, m) {
 		createbroad ? !0 : (comm.hideDots(), comm.hidePane(),comm.mans[e].alpha = 0.6,comm.mans[e].ps = comm.mans[e].bl(), comm.dot.dots = comm.mans[e].ps),		
 		bill.nowManKey = e, 
 		(bill.isPlay || createbroad) ? (comm.showDots()):(comm.hideDots()), 
-		first ? (createjs.Sound.play("drop"), first = !1) : createjs.Sound.play("select"), 
+		first ? (comm.soundplay("drop"), first = !1) : comm.soundplay("select"), 
 		comm.light.x = comm.spaceX * o.x + comm.pointStartX - 20, comm.light.y = comm.spaceY * o.y + comm.pointStartY - 24, comm.light.visible = !0)
 	}	
 };
@@ -295,14 +294,15 @@ bill.checkbranch = function(e){
 	}
 	return !1;
 }
-var first = !1;
-var createbroad = !1;
-var currentId = 0;
-var id = 0;
-var moves = [];
-var countPath = 0;
-var shape = [];
-var text = [];
+var first = !1,
+createbroad = !1,
+currentId = 0,
+id = 0,
+moves = [],
+countPath = 0,
+shape = [],
+text = [],
+autoset = 0;
 bill.clickPoint = function(e, a) {
     var m = bill.nowManKey;
     o = comm.mans[m];
@@ -310,8 +310,7 @@ bill.clickPoint = function(e, a) {
 	if (bill.isPlay == !0){		
 		 if (bill.nowManKey && bill.indexOfPs(comm.mans[m].ps, [e, a])) 
 		{
-			//if (movesIndex < moves.length) {showFloatTip("不是最后一步，请重试");return;}
-				
+			//if (movesIndex < moves.length) {showFloatTip("不是最后一步，请重试");return;}				
 			var n = o.x + "" + o.y;
 			delete bill.map[o.y][o.x],
 			bill.map[a][e] = m,
@@ -324,7 +323,7 @@ bill.clickPoint = function(e, a) {
 				from: s,
 				to: r
 			};
-			bill.addCallOnDrop(SAI, [2, c, onReqMove, onFault]),
+			//bill.addCallOnDrop(SAI, [2, c, onReqMove, onFault]),
 			o.x = e,
 			o.y = a,
 			o.animate(),
@@ -446,12 +445,14 @@ bill.cleanLine = function(){
 	}
 },
 bill.reverse = function() {
+	if (bill.isAnimating) return ! 1;
 	if (waitServerPlay) return;
-	reverseMode ? (reverseMode = 0, bill.my = 1) : (reverseMode = 1, bill.my = -1);
+	reverseMode ? (reverseMode = 0) : (reverseMode = 1);
 	bill.reverseMoves();
-	reverseMap = comm.arrReverse(bill.map);
+	bill.map = comm.arrReverse(bill.map);
 	bill.cleanChess();
-	bill.init(3,reverseMap,!0);	
+	bill.init(3,bill.map,!0);
+	play.map = bill.map;
 },
 bill.save = function() {
 	$("#saveBtn").hide();
@@ -460,33 +461,19 @@ bill.save = function() {
 		return;
 	}
 	createbroad = !1;
-	showFloatTip("保存棋谱");
+	//showFloatTip("保存棋谱");
 	bill.cMap = comm.arr2Clone(bill.map),
-	bill.cleanChess(),						
-	bill.init(3,bill.map,!0);	
-	bill.cleanChess2();	
+	bill.cleanChess(),
+	bill.init(3,bill.map,!0);
+	bill.cleanChess2();
 	play.map = bill.map;
-	//var b = comm.getMap6Server(bill.map);
-	//var _json = {"map": b};
-	/*
-	$.ajax({
-		type: "POST",
-		url: 'addData.php',
-		dataType: "text",		
-		data: _json,
-		success: function(response,status,xhr) {
-			console.log(_json);
-		},
-		error: function(response,status,xhr){
-			alert("error");
-		}
-	})*/
+	
 	$("#mode5").hide(),
 	$("#mode4").show(),
 	movesIndex = 0,
 	bill.pace = [],
 	bill.replayBtnUpdate();
-	//comm.autoPlay();
+	bill.setting();
 },
 bill.note = function() {
 	popupDiv('notedialog');		
@@ -506,35 +493,56 @@ bill.note = function() {
 			});	
 },
 bill.setting = function() {		
-	if(autoset) clearInterval(autoset);
+	clearInterval(autoset);
 	popupDiv('settingdialog');	
 	$("#settingdialog").on('click', '.btn_dialog_cancle', function () {          
-				hideDiv('settingdialog');    
-			}).on('click', '.btn_dialog_ok', function () {    
-				$("input[type='radio']").each(function(){
-					var id= $(this).attr("value");
-					 if(this.checked){           
-						playmode = id;
+				hideDiv('settingdialog');  
+				playmode = 1;
+				bill.Play(playmode);
+				//$("#playmode").hide();
+			}).on('click', '.btn_dialog_ok', function () {  
+				var chkObjs = $("input[name='playmode']");
+				for(var i=0;i<chkObjs.length;i++){
+					if(chkObjs[i].checked){
+						playmode = i+1;
+						break;
 					}
-				  });		
+				}
+				var chkObjs = $("input[name='voicemode']");
+				for(var i=0;i<chkObjs.length;i++){
+					if(chkObjs[i].checked){
+						voicemode = i+1;
+						break;
+					}	
+				}						
 				bill.Play(playmode);
 				hideDiv('settingdialog');    
 			})
 },
+bill.showPlaymode = function(e){
+	$("#playmode").text(e);
+	$("#playmode").show();
+},
 bill.Play = function(e){
+	play.showThink();
 	switch(e) {
-		case "1":
-			bill.my = 1;
+		case 1:
+			//bill.my = 1;
+			bill.showPlaymode("红（自己）VS 黑（自己）");
 			break;
-		case "2":	
-			bill.my = 1;		
+		case 2:	
+			bill.showPlaymode("红（自己）VS 黑（电脑）");
+			bill.AIPlay();			
 			break;
-		case "3":
-			bill.my = -1;	
+		case 3:
+			bill.showPlaymode("红（电脑）VS 黑（自己）");
+			reverseMode ? !0 : bill.reverse();
 			bill.AIPlay();
 			break;
-		case "4":
-			comm.autoPlay();
+		case 4:
+			bill.showPlaymode("红（电脑）VS 黑（电脑）");
+			clearInterval(autoset);
+			autoset = setInterval(bill.AIPlay, 2000);
 			break;		
 	}
 },
@@ -780,7 +788,7 @@ bill.getMoves6ServerEx = function() {
 },
 bill.reverseMoves = function() {	
 	var e = "",o = "";
-    for (a = 0; a < bill.paceEx.length; a++) {			
+    for (a = 0; a < bill.paceEx.length; a++) {
         var paceEx = bill.paceEx[a];
 		for(b = 0; b < paceEx.length; b++) {
 			var temp = paceEx[b][0].split("");	
@@ -791,7 +799,7 @@ bill.reverseMoves = function() {
 			paceEx[b][0] = temp.join("");	
 		}	
     }
-	for (a = 0; a < bill.pace.length; a++) {			
+	for (a = 0; a < bill.pace.length; a++) {
         var pace = bill.pace[a].split("");
 		pace[0] = 8-pace[0];
 		pace[1] = 9-pace[1];
@@ -811,13 +819,16 @@ bill.stepPlay = function(e, a, m) {
     o ? bill.AIclickMan(o, a.x, a.y, m) : bill.AIclickPoint(a.x, a.y, m)
 },
 bill.AIPlay = function(){
-	if(playmode == "2"){
-		play.AIPlay2();		
+	if(playmode == 1) return;
+	if(waitServerPlay) return;
+	play.map  = bill.map;	
+	if(movesIndex%2 == 1){//黑
+		play.bAIPlay();		
 		play.my = -1;
 		bill.my = 1;
 	} 
-	if(playmode == "3") {
-		play.AIPlay1();		
+	if(movesIndex%2 == 0) {//红
+		play.rAIPlay();		
 		play.my = 1;
 		bill.my = -1;
 	}
@@ -919,49 +930,25 @@ bill.createMans = function(e) {
 },
 bill.bylawX = function() {
     var n = [];
-	n.push([2, 0]),
-	n.push([6, 0]),
-	n.push([2, 4]),
-	n.push([6, 4]),
-	n.push([0, 2]),
-	n.push([4, 2]),
-	n.push([8, 2]);	
+	n.push([2, 0]),	n.push([6, 0]),	n.push([2, 4]),	n.push([6, 4]),	n.push([0, 2]),
+	n.push([4, 2]),	n.push([8, 2]);	
     return n;
 },
 bill.bylawS = function(e, a, m, o) {
     var n = [];
-	n.push([3, 0]),
-	n.push([5, 0]),
-	n.push([4, 1]),
-	n.push([3, 2]),
-	n.push([5, 2]);	
+	n.push([3, 0]),	n.push([5, 0]),	n.push([4, 1]),	n.push([3, 2]),	n.push([5, 2]);	
     return n;
 },
 bill.bylawJ = function(e, a, m, o) {
     var n = [];
-	n.push([4, 0]),
-	n.push([5, 0]),
-	n.push([3, 0]),
-	n.push([4, 1]),
-	n.push([5, 1]),
-	n.push([3, 1]),
-	n.push([4, 2]),
-	n.push([5, 2]),
-	n.push([3, 2]);	
+	n.push([4, 0]),	n.push([5, 0]),	n.push([3, 0]),	n.push([4, 1]),	n.push([5, 1]),
+	n.push([3, 1]),	n.push([4, 2]),	n.push([5, 2]),	n.push([3, 2]);	
     return n;
 },
 bill.bylawZ = function(e, a, m, o) {
     var n = [];
-	n.push([0, 3]),
-	n.push([0, 4]),
-	n.push([2, 3]),
-	n.push([2, 4]),
-	n.push([4, 3]),
-	n.push([4, 4]),
-	n.push([6, 3]),
-	n.push([6, 4]),
-	n.push([8, 3]),
-	n.push([8, 4]);	
+	n.push([0, 3]),	n.push([0, 4]),	n.push([2, 3]),	n.push([2, 4]),	n.push([4, 3]),
+	n.push([4, 4]),	n.push([6, 3]),	n.push([6, 4]),	n.push([8, 3]),	n.push([8, 4]);	
 	for (var i=0;i<9;i++)
 		for(var j=5;j<10;j++)
 			n.push([i, j]);	
@@ -969,182 +956,42 @@ bill.bylawZ = function(e, a, m, o) {
 },
 bill.bylawx = function() {
     var n = [];
-	n.push([2, 5]),
-	n.push([6, 5]),
-	n.push([2, 9]),
-	n.push([6, 9]),
-	n.push([0, 7]),
-	n.push([4, 7]),
-	n.push([8, 7]);	
+	n.push([2, 5]),	n.push([6, 5]),	n.push([2, 9]),	n.push([6, 9]),	n.push([0, 7]),
+	n.push([4, 7]),	n.push([8, 7]);	
     return n;
 },
 bill.bylaws = function(e, a, m, o) {
     var n = [];
-	n.push([3, 7]),
-	n.push([5, 7]),
-	n.push([4, 8]),
-	n.push([3, 9]),
-	n.push([5, 9]);	
+	n.push([3, 7]),	n.push([5, 7]),	n.push([4, 8]),	n.push([3, 9]),	n.push([5, 9]);	
     return n;
 },
 bill.bylawj = function(e, a, m, o) {
     var n = [];
-	n.push([4, 7]),
-	n.push([5, 7]),
-	n.push([3, 7]),
-	n.push([4, 8]),
-	n.push([5, 8]),
-	n.push([3, 8]),
-	n.push([4, 9]),
-	n.push([5, 9]),
-	n.push([3, 9]);	
+	n.push([4, 7]),	n.push([5, 7]),	n.push([3, 7]),	n.push([4, 8]),	n.push([5, 8]),
+	n.push([3, 8]),	n.push([4, 9]),	n.push([5, 9]),	n.push([3, 9]);	
     return n;
 },
 bill.bylawz = function(e, a, m, o) {
     var n = [];
-	n.push([0, 5]),
-	n.push([0, 6]),
-	n.push([2, 5]),
-	n.push([2, 6]),
-	n.push([4, 5]),
-	n.push([4, 6]),
-	n.push([6, 5]),
-	n.push([6, 6]),
-	n.push([8, 5]),
-	n.push([8, 6]);	
+	n.push([0, 5]),	n.push([0, 6]),	n.push([2, 5]),	n.push([2, 6]),	n.push([4, 5]),
+	n.push([4, 6]),	n.push([6, 5]),	n.push([6, 6]),	n.push([8, 5]),	n.push([8, 6]);	
 	for (var i=0;i<9;i++)
 		for(var j=0;j<5;j++)
 			n.push([i, j]);	
     return n;
 },
 bill.checkMans = function(e,a,m){
-	
+	//检查将、士、象、兵、卒的位置是否合法	
 	e = e.slice(0, 1);
-	if(reverseMode == 0){
-		switch(e){
-		case "J":
-			if(a>-1 && 3>a && m>2 && 6>m) return !0;
-			else return !1;
-			break;
-		case "X":
-			if( ((a == 0 || a == 4) && (m == 2 || m == 6)) ||
-				(a == 2 && (m == 0 || m ==4 || m == 8)) ) return !0;
-			else return !1;
-			break;
-		case "S":
-			if( ((a == 0 || a == 2) && (m == 3 || m == 5)) ||
-				(a == 1 && (m == 4)) ) return !0;
-			else return !1;
-			break;
-		case "Z":
-			if( ((a == 3 || a == 4) && (m == 0 || m == 2 || m == 4 || m == 6 || m == 8)) ||
-				(a>4 && 10>a) ) return !0;
-			else return !1;
-			break;
-		case "j":
-			if(a>6 && 10>a && m>2 && 6>m) return !0;
-			else return !1;
-			break;
-		case "x":
-			if( ((a == 5 || a == 9) && (m == 2 || m == 6)) ||
-				(a == 7 && (m == 0 || m ==4 || m == 8)) ) return !0;
-			else return !1;
-			break;
-		case "s":
-			if( ((a == 7 || a == 9) && (m == 3 || m == 5)) ||
-				(a == 8 && (m == 4)) ) return !0;
-			else return !1;
-			break;
-		case "z":
-			if( ((a == 5 || a == 6) && (m == 0 || m == 2 || m == 4 || m == 6 || m == 8)) ||
-				(a>-1 && 5>a) ) return !0;
-			else return !1;
-			break;
-		default:
-			return !0;
-			break;		
-		}	
-	}
-	else{
-		switch(e){
-		case "j":
-			if(a>-1 && 3>a && m>2 && 6>m) return !0;
-			else return !1;
-			break;
-		case "x":
-			if( ((a == 0 || a == 4) && (m == 2 || m == 6)) ||
-				(a == 2 && (m == 0 || m ==4 || m == 8)) ) return !0;
-			else return !1;
-			break;
-		case "s":
-			if( ((a == 0 || a == 2) && (m == 3 || m == 5)) ||
-				(a == 1 && (m == 4)) ) return !0;
-			else return !1;
-			break;
-		case "z":
-			if( ((a == 3 || a == 4) && (m == 0 || m == 2 || m == 4 || m == 6 || m == 8)) ||
-				(a>4 && 10>a) ) return !0;
-			else return !1;
-			break;
-		case "J":
-			if(a>6 && 10>a && m>2 && 6>m) return !0;
-			else return !1;
-			break;
-		case "X":
-			if( ((a == 5 || a == 9) && (m == 2 || m == 6)) ||
-				(a == 7 && (m == 0 || m ==4 || m == 8)) ) return !0;
-			else return !1;
-			break;
-		case "S":
-			if( ((a == 7 || a == 9) && (m == 3 || m == 5)) ||
-				(a == 8 && (m == 4)) ) return !0;
-			else return !1;
-			break;
-		case "Z":
-			if( ((a == 5 || a == 6) && (m == 0 || m == 2 || m == 4 || m == 6 || m == 8)) ||
-				(a>-1 && 5>a) ) return !0;
-			else return !1;
-			break;
-		default:
-			return !0;
-			break;		
-		}	
-	}
-	
+	(reverseMode == 0) ? ( result = {"J":(a>-1 & 3>a & m>2 & 6>m), "X":( ((a == 0 || a == 4) & (m == 2 || m == 6)) || (a == 2 & (m == 0 || m ==4 || m == 8)) ), "S":( ((a == 0 || a == 2) & (m == 3 || m == 5)) || (a == 1 & (m == 4)) ), "Z":( ((a == 3 || a == 4) & (m == 0 || m == 2 || m == 4 || m == 6 || m == 8)) || (a>4 & 10>a) ), "j":(a>6 & 10>a & m>2 & 6>m), "x":( ((a == 5 || a == 9) & (m == 2 || m == 6)) || (a == 7 & (m == 0 || m ==4 || m == 8)) ), "s":( ((a == 7 || a == 9) & (m == 3 || m == 5)) || (a == 8 & (m == 4)) ), "z":( ((a == 5 || a == 6) & (m == 0 || m == 2 || m == 4 || m == 6 || m == 8)) || (a>-1 & 5>a) ), "C":!0, "M":!0, "P":!0, "c":!0, "m":!0, "p":!0 }[e] || !1):( result = {"j":(a>-1 & 3>a & m>2 & 6>m), "x":( ((a == 0 || a == 4) & (m == 2 || m == 6)) || (a == 2 & (m == 0 || m ==4 || m == 8)) ) ,  "s":( ((a == 0 || a == 2) & (m == 3 || m == 5)) || (a == 1 & (m == 4)) ), "z":( ((a == 3 || a == 4) & (m == 0 || m == 2 || m == 4 || m == 6 || m == 8)) || (a>4 & 10>a) ), "J":(a>6 & 10>a & m>2 & 6>m), "X":( ((a == 5 || a == 9) & (m == 2 || m == 6)) || (a == 7 & (m == 0 || m ==4 || m == 8)) ), "S":( ((a == 7 || a == 9) & (m == 3 || m == 5)) || (a == 8 & (m == 4)) ), "Z":( ((a == 5 || a == 6) & (m == 0 || m == 2 || m == 4 || m == 6 || m == 8)) || (a>-1 & 5>a) ), "C":!0, "M":!0, "P":!0, "c":!0, "m":!0, "p":!0 }[e] || !1)
+
+	return result;	
 },
 bill.checkManDots = function(e){
 	comm.hideDots();
 	e = e.slice(0, 1);
-
-	switch(e){
-		case "J":
-			reverseMode == 0 ? (comm.dot.dots = bill.bylawJ()) : (comm.dot.dots = bill.bylawj());
-			break;
-		case "S":
-			reverseMode == 0 ? (comm.dot.dots = bill.bylawS()) : (comm.dot.dots = bill.bylaws());		
-			break;
-		case "X":
-			reverseMode == 0 ? (comm.dot.dots = bill.bylawX()) : (comm.dot.dots = bill.bylawx());
-			break;
-		case "Z":
-			reverseMode == 0 ? (comm.dot.dots = bill.bylawZ()) : (comm.dot.dots = bill.bylawz());
-			break;
-		case "j":
-			reverseMode == 0 ? (comm.dot.dots = bill.bylawj()) : (comm.dot.dots = bill.bylawJ());
-			break;
-		case "s":
-			reverseMode == 0 ? (comm.dot.dots = bill.bylaws()) : (comm.dot.dots = bill.bylawS());
-			break;
-		case "x":
-			reverseMode == 0 ? (comm.dot.dots = bill.bylawx()) : (comm.dot.dots = bill.bylawX());
-			break;
-		case "z":
-			reverseMode == 0 ? (comm.dot.dots = bill.bylawz()) : (comm.dot.dots = bill.bylawZ());
-			break;
-		default:
-			comm.dot.dots = [];
-			break;		
-	}	
+	//显示可走的点
+	reverseMode == 0 ? (comm.dot.dots = {"J":bill.bylawJ(),"S":bill.bylawS(),"X":bill.bylawX(),"Z":bill.bylawZ(),"j":bill.bylawj(),"s":bill.bylaws(),"x":bill.bylawx(),"z":bill.bylawz()}[e] || []) : (comm.dot.dots = {"J":bill.bylawj(),"S":bill.bylaws(),"X":bill.bylawx(),"Z":bill.bylawz(),"j":bill.bylawJ(),"s":bill.bylawS(),"x":bill.bylawX(),"z":bill.bylawZ()}[e] || [])
 	
 	comm.showDots();
 },
@@ -1169,6 +1016,7 @@ bill.checkJiang = function(){
 	return !0;
 },
 bill.onGameEnd = function(e, a) {
+	clearInterval(autoset);
     bill.BillType = 1,
     1 === e ? (console.log("恭喜你，你赢了！"), play.showWin()) : (console.log("很遗憾，你输了！"), a ? play.showLose() : play.addCallOnDrop(play.showLose))
 }

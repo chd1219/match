@@ -39,7 +39,7 @@ play.onChessDrop = function() {
         var m = removeOnDrops.splice(a, 1)[0];
         m.parent.removeChild(m)
     }
-    createjs.Sound.play("drop"),
+    comm.soundplay("drop"),
     //play.showThink(),
     setTimeout(e, 200)
 },
@@ -52,8 +52,7 @@ play.addRemoveOnDrop = function(e) {
     removeOnDrops.push(e)
 },
 play.regret = function() {
-    play.pace.length >= 2 ? (regret(), SAI(3, {},
-    onReqRegret, onFault)) : showFloatTip("还没开始下棋呢")
+    play.pace.length >= 2 ? (regret()) : showFloatTip("还没开始下棋呢")
 },
 play.clickCanvas = function(e) {
     if (play.isAnimating) return ! 1;
@@ -84,7 +83,7 @@ play.clickMan = function(e, a, m) {
                 from: s,
                 to: r
             };
-            play.addCallOnDrop(SAI, [2, c, onReqMove, onFault]),
+            //play.addCallOnDrop(SAI, [2, c, onReqMove, onFault]),
             comm.mans[play.nowManKey].x = a,
             comm.mans[play.nowManKey].y = m,
             comm.mans[play.nowManKey].alpha = 1,
@@ -95,12 +94,12 @@ play.clickMan = function(e, a, m) {
             comm.dot.dots = [],
             comm.hideDots(),
             comm.light.visible = !1,			
-			play.AIPlay2(),
+			play.AIPlay(n + a + m),
             "j0" == e && play.onGameEnd( - 1),
             "J0" == e && play.onGameEnd(1);						
         }
     } else {
-		1 === o.my && (
+		play.my === o.my && (
 		comm.mans[play.nowManKey] && (comm.mans[play.nowManKey].alpha = 1),
 		comm.hideDots(), 
 		comm.hidePane(), 
@@ -108,7 +107,7 @@ play.clickMan = function(e, a, m) {
 		comm.mans[e].ps = comm.mans[e].bl(), 
 		comm.dot.dots = comm.mans[e].ps, 
 		comm.showDots(), 
-		first ? (createjs.Sound.play("drop"), first = !1) : createjs.Sound.play("select"), 
+		first ? (comm.soundplay("drop"), first = !1) : comm.soundplay("select"), 
 		comm.light.x = comm.spaceX * o.x + comm.pointStartX - 20, 
 		comm.light.y = comm.spaceY * o.y + comm.pointStartY - 24
 		)
@@ -131,7 +130,7 @@ play.clickPoint = function(e, a) {
             from: s,
             to: r
         };
-        play.addCallOnDrop(SAI, [2, c, onReqMove, onFault]),
+        //play.addCallOnDrop(SAI, [2, c, onReqMove, onFault]),
         o.x = e,
         o.y = a,
         o.animate(),
@@ -139,11 +138,12 @@ play.clickPoint = function(e, a) {
         play.nowManKey = !1,
         comm.dot.dots = [],
         comm.hideDots(),
-		play.AIPlay2(),
+		play.AIPlay(n + e + a),
         comm.light.visible = !1;		
     }
 },
 play.showThink = function() {
+	room_id ? ( play.my == -1 ? $("#AIThink").text("红方思考中。。。") : $("#AIThink").text("黑方思考中。。。") ) : ( movesIndex%2 == 0 ? $("#AIThink").text("红方思考中。。。") : $("#AIThink").text("黑方思考中。。。") );
     $("#AIThink").show()
 },
 play.hideThink = function() {
@@ -166,26 +166,27 @@ play.autoPlay = function(){
 			else play.my = 1;	
 		}			
 },
-play.AIPlay = function() {
-	play.showThink();
-	waitServerPlay = !0;
-	sendPosition(play.getFen(play.map,play.my));
-	console.log(play.getFen(play.map,play.my));
-	//setTimeout(play.serverAIPlay,100);
-	//play.serverAIPlay();
-   // play.addCallOnDrop(play.serverAIPlay)
-   // play.addCallOnDrop(play.clientPlay)
-	//play.clientPlay();
+play.AIPlay = function(e) {
+	room_id = getUrlParam("roomid");
+	room_id ? play.onlinePlay(e) : play.bAIPlay();
 },
-play.AIPlay2 = function() {//黑
+play.onlinePlay = function(e) {
 	play.showThink();
 	waitServerPlay = !0;
-	sendPosition(play.getFen(play.map,-1));
+	sendPosition("move "+e);
+	console.log(e);
 },
-play.AIPlay1 = function() {//红
-	play.showThink();
+play.bAIPlay = function() {//黑
+	$("#AIThink").text("黑方思考中。。。");
+    $("#AIThink").show()
 	waitServerPlay = !0;
-	sendPosition(play.getFen(play.map,1));
+	sendPosition(play.getFen(reverseMode ? comm.arrReverse(play.map) : play.map, -1));
+},
+play.rAIPlay = function() {//红
+	$("#AIThink").text("红方思考中。。。");
+    $("#AIThink").show()
+	waitServerPlay = !0;
+	sendPosition(play.getFen(reverseMode ? comm.arrReverse(play.map) : play.map, 1));
 },
 play.serverAIPlay = function() {		
     if (0 != play.isPlay) {		
@@ -199,23 +200,24 @@ play.serverAIPlay = function() {
 			e[2] = 8-e[2];
 			e[3] = 9-e[3];
 		}
-				
+
         play.pace.push(e.join(""));
-		if(playmode != "1"){
-			movesIndex++; 
+		movesIndex++; 
+		if(playmode != "1"){			
 			bill.branch(e.join(""));
 			bill.replayBtnUpdate();	
 		}
+		
         var a = play.map[e[1]][e[0]];
         play.nowManKey = a;
         var a = play.map[e[3]][e[2]];
+
         a ? setTimeout(play.AIclickMan, 1000, a, e[2], e[3]) : setTimeout(play.AIclickPoint, 1000, e[2], e[3]);
 		//锁定，等待1s后解锁
 		setTimeout((function(){waitServerPlay = !1;}),1000);
 		if(playmode == 1) setTimeout((function(){checkIsFinalKill();}),1800);
 		//if(playmode == 4) checkIsFinalKill();
     }
-	play.hideThink();
 },
 play.clientPlay = function() {
     if (0 != play.isPlay) {
@@ -242,34 +244,12 @@ play.ParseMsg = function(d) {
 			return;
 		}
 		var o = e[1].split(""); 
-		
+		//坐标变换(a-i)->(0-8),(0-9)->(9-0)
 		for(var i=0;i<4;i++){
-			switch(o[i]){
-				case "a": o[i] = "0"; break;
-				case "b": o[i] = "1"; break;
-				case "c": o[i] = "2"; break;
-				case "d": o[i] = "3"; break;
-				case "e": o[i] = "4"; break;
-				case "f": o[i] = "5"; break;
-				case "g": o[i] = "6"; break;
-				case "h": o[i] = "7"; break;
-				case "i": o[i] = "8"; break;
-				case "0": o[i] = "9"; break;
-				case "1": o[i] = "8"; break;
-				case "2": o[i] = "7"; break;
-				case "3": o[i] = "6"; break;
-				case "4": o[i] = "5"; break;
-				case "5": o[i] = "4"; break;
-				case "6": o[i] = "3"; break;
-				case "7": o[i] = "2"; break;
-				case "8": o[i] = "1"; break;
-				case "9": o[i] = "0"; break;
-			}                         
+			o[i] = {"a":"0","b":"1","c":"2","d":"3","e":"4","f":"5","g":"6","h":"7","i":"8","0":"9","1":"8","2":"7","3":"6","4":"5","5":"4","6":"3","7":"2","8":"1","9":"0"}[o[i]] || "";			                      
 		}
 		o.length = 4;
 		play.aiPace = o;	
-		//play.serverAIPlay();
-		//setTimeout((function(){play.serverAIPlay();}),500);
 		if(playmode == "4") setTimeout((function(){play.serverAIPlay();}),100);
 		else play.serverAIPlay();
 	}
@@ -331,36 +311,37 @@ play.onGameEndLose = function() {
     play.onGameEnd( - 1, 1)
 },
 play.onGameEnd = function(e, a) {
-	clearInterval(autoset),
     play.isPlay = !1,
     comm.onGameEnd(e),
-    play.hideThink(),
-    1 === e ? (console.log("恭喜你，你赢了！"), play.showWin()) : (console.log("很遗憾，你输了！"), play.showLose())
-	
+    play.hideThink();
+    if(reverseMode){
+        -1 === e ? (console.log("恭喜你，你赢了！"), play.showWin()) : (console.log("很遗憾，你输了！"), play.showLose())
+    }
+   else{
+        1 === e ? (console.log("恭喜你，你赢了！"), play.showWin()) : (console.log("很遗憾，你输了！"), play.showLose())
+    }	
 },
 play.showWin = function() {
-    createjs.Sound.play("gamewin"),
+    comm.soundplay("gamewin"),
 	showFloatTip("恭喜你，你赢了！");
    // showResult(1)
 },
 play.showLose = function() {
-    createjs.Sound.play("gamelose"),
+    comm.soundplay("gamelose"),
 	showFloatTip("很遗憾，你输了！");
    // showResult(0)
 };
 play.getFen = function(e,a){
 	var result = "position fen ";
-	var o = "";
+	var map = "";
 	var arr = [];
 	var coutZero = 0;
 	for(var i=0;i<10;i++){
 		coutZero = 0;
 		for(var j=0;j<9;j++){
-			o = e[i][j];
-			//arr = o.split("");
-			//o = e[i][j].slice(0,1);
-			
-			if(!o){
+			map = e[i][j];
+		
+			if(!map){
 				coutZero++;
 				continue;
 			}			
@@ -368,43 +349,10 @@ play.getFen = function(e,a){
 				result += ""+coutZero;
 				coutZero = 0;
 			}
-				
-			switch(o){
-				case "J0":		result += "k";	break;
-				case "X0":		result += "b";	break;
-				case "X1":		result += "b";	break;
-				case "S0":		result += "a";	break;
-				case "S1":		result += "a";	break;
-				case "Z0":		result += "p";	break;
-				case "Z1":		result += "p";	break;
-				case "Z2":		result += "p";	break;
-				case "Z3":		result += "p";	break;
-				case "Z4":		result += "p";	break;
-				case "C0":		result += "r";	break;
-				case "C1":		result += "r";	break;
-				case "M0":		result += "n";	break;
-				case "M1":		result += "n";	break;
-				case "P0":		result += "c";	break;	
-				case "P1":		result += "c";	break;					
-				case "j0":		result += "K";	break;
-				case "x0":		result += "B";	break;
-				case "x1":		result += "B";	break;
-				case "s0":		result += "A";	break;
-				case "s1":		result += "A";	break;
-				case "z0":		result += "P";	break;
-				case "z1":		result += "P";	break;
-				case "z2":		result += "P";	break;
-				case "z3":		result += "P";	break;
-				case "z4":		result += "P";	break;
-				case "c0":		result += "R";	break;
-				case "c1":		result += "R";	break;
-				case "m0":		result += "N";	break;
-				case "m1":		result += "N";	break;
-				case "p0":		result += "C";	break;
-				case "p1":		result += "C";	break;
-				default:						break;		
-			}	
-
+			//将棋盘数组转化成FEN格式
+			var board={"J0":"k","X0":"b","X1":"b","S0":"a","S1":"a","Z0":"p","Z1":"p","Z2":"p","Z3":"p","Z4":"p","C0":"r","C1":"r","M0":"n","M1":"n","P0":"c","P1":"c","j0":"K","x0":"B","x1":"B","s0":"A","s1":"A","z0":"P","z1":"P","z2":"P","z3":"P","z4":"P","c0":"R","c1":"R","m0":"N","m1":"N","p0":"C","p1":"C"}[map] || ""; 
+			
+			result += board;
 		}
 		if(i < (e.length-1)){
 			if(coutZero > 0){
@@ -414,6 +362,9 @@ play.getFen = function(e,a){
 			result += "/";
 		}		
 	}
-	a == -1 ? (result += " b - - 0 1") : (result += " w - - 0 1")
-	return result;
+	a == -1 ? (result += " b - - 0 1") : (result += " w - - 0 1");
+	console.log(result);
+	
+	if (result.indexOf("k") != -1 && result.indexOf("K") != -1) return result;    
+	return "";
 }

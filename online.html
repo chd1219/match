@@ -2,7 +2,7 @@
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-<title> 象棋微学堂在线对弈系统</title>
+<title> 象棋微学堂手机软件</title>
 	<script type="text/javascript">
 		var phoneWidth = parseInt(window.screen.width);
 		var phoneScale = phoneWidth/640;
@@ -22,26 +22,10 @@
 		}
 	</script>
     <link href="css/chess.css" rel="stylesheet" type="text/css"> 
-	<script src="js/settings.js"></script>
-    <script type="application/javascript">
-        var canvas, stage, exportRoot;
-        var MODE_PLAY = 1;
-        var mode = 0;
-		var playmode = 1;
-        var file,level_id = -1;
-        var chapterTitle = '';	
-        
-		var CDN_PATH = '';
-        var JS_VER_COMBINED = 'combined';
-        var JS_VER_MIN = 'min';
-        var JS_VER = JS_VER_MIN;
-
-    </script>
-	
+	<script src="js/settings.js"></script>	
     <script src="libs/preloadjs-0.6.1.min.js"></script>
     
 	<script>
-
         var startLoadTime = 0;
         var fullLoadTime = 0;
 
@@ -64,8 +48,9 @@
             loader.loadFile({src:CDN_PATH+"libs/reconnecting-websocket.min.js"});
             loader.loadFile({src:CDN_PATH+"js/ScaleBitmap.min.js"});
             loader.loadFile({src:CDN_PATH+"js/AI.js"});
-            loader.loadFile({src:CDN_PATH+"js/online.play.js"});
-            loader.loadFile({src:CDN_PATH+"js/online.min.v7.js"});
+            loader.loadFile({src:CDN_PATH+"js/comm.js"});
+            loader.loadFile({src:CDN_PATH+"js/play.js"});
+            loader.loadFile({src:CDN_PATH+"js/init.online.js"});
             loader.loadFile({src:CDN_PATH+"assets/images/chess_slim_atlas_.json", type:"spritesheet", id:"chess_slim_atlas_"}, true);
             loader.loadFile({src:CDN_PATH+"libs/gameRes.min.v1.js"});
             loader.loadFile({src:CDN_PATH+"assets/images/f_atlas_.json", type:"spritesheet", id:"f_atlas_"}, true);
@@ -132,7 +117,7 @@
 	<div id="AIThink">对方正在思考中...</div>
 
     <canvas id="chess" width="640" height="1023"></canvas>
-    <div id="tipsInfo">	象棋微学堂智能对弈系统	</div>	
+    <div id="tipsInfo">	象棋微学堂手机软件	</div>	
 	<div id="noteInfo"></div>	
 	
 	<div id="restartdialog" class="restartdialog" style="display: none;">是否重来？
