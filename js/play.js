@@ -52,16 +52,16 @@ play.addRemoveOnDrop = function(e) {
     removeOnDrops.push(e)
 },
 play.regret = function() {
-    play.pace.length >= 2 ? (regret()) : showFloatTip("还没开始下棋呢")
+    play.pace.length >= 1 ? (regret()) : showFloatTip("还没开始下棋呢")
 },
 play.clickCanvas = function(e) {
     if (play.isAnimating) return ! 1;
     if (!play.isPlay) return ! 1;
+	if(waitServerPlay) return ! 1;
     var a = play.getClickMan(e),
     m = play.getClickPoint(e),
     o = m.x,
     n = m.y;
-	if(waitServerPlay) return;
     a ? play.clickMan(a, o, n) : play.clickPoint(o, n),
     play.isFoul = play.checkFoul()
 },
@@ -143,6 +143,7 @@ play.clickPoint = function(e, a) {
     }
 },
 play.showThink = function() {
+	room_id = getUrlParam("roomid");
 	room_id ? ( play.my == -1 ? $("#AIThink").text("红方思考中。。。") : $("#AIThink").text("黑方思考中。。。") ) : ( movesIndex%2 == 0 ? $("#AIThink").text("红方思考中。。。") : $("#AIThink").text("黑方思考中。。。") );
     $("#AIThink").show()
 },

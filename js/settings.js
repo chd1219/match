@@ -8,7 +8,6 @@ var mode = 1;
 var playmode = 1;
 var file,level_id = -1;
 var chapterTitle = '';
-
 var REPLAY_GET_URL = baseURL+'/save/';
 var REPLAY_SAVE_URL = REPLAY_GET_URL;	
 
