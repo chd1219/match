@@ -8,8 +8,9 @@
 .btnBase{width:141px;height:52px;border-style:none;background-color: transparent;}
 .newgameBtn{background: url("../assets/images/b2.png") no-repeat -300px -477px;}
 .resignBtn{background: url("../assets/images/b2.png") no-repeat -158px -477px;}
+.offerdrawBtn{background: url("../assets/images/b2.png") no-repeat 0px -535px;}
 .restartBtn{background: url("../assets/images/a.png") no-repeat 0px -120px;}
-.regretBtn{background: url("../assets/images/a.png") no-repeat -300px -120px;}
+.regretBtn{background: url("../assets/images/a.png") no-repeat -300px -121px;}
 .regretBtnDisable{display: none;}
 .helpBtn{background: url("../assets/images/a.png") no-repeat -150px -120px;}
 

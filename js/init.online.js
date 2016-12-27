@@ -44,15 +44,30 @@ function shownewgame(){
 	$("#newgameBtn").show(),
 	$("#returnBtn1").show(),
     $("#resignBtn").hide(),
-    $("#regretBtn").hide()
+    $("#offerdrawBtn").hide(),
+    $("#regretBtn").hide(),
+	$("#AIThink").hide();
 }
 
 function shownomal(){
 	$("#newgameBtn").hide(),
 	$("#returnBtn1").hide(),
 	$("#returnBtn").hide(),
-    $("#resignBtn").show(),
-    $("#regretBtn").show()
+    $("#resignBtn").hide(),
+    $("#offerdrawBtn").hide(),
+    $("#regretBtn").hide(),
+	$("#AIThink").text("等待用户加入"),
+	$("#AIThink").show();	
+}
+
+function hideAll(){
+	$("#newgameBtn").hide(),
+	$("#returnBtn1").hide(),
+	$("#returnBtn").hide(),
+    $("#resignBtn").hide(),
+    $("#offerdrawBtn").hide(),
+    $("#regretBtn").hide(),
+	$("#AIThink").hide();	
 }
 
 function initLayer(e) {
@@ -86,6 +101,7 @@ function resignBtn() {
 
 onMessage = function(d) {
 	if(d.match("close")){
+		$("#offerdrawBtn").hide(),
 		$("#resignBtn").hide(),
 		$("#regretBtn").hide(),
 		$("#sendBtn").show()
@@ -119,7 +135,11 @@ onMessage = function(d) {
 	if(d.match("running")){
 		if(play.isPlay) return;
 		play.isPlay = !0;
-		onlineinit()
+		onlineinit();
+		$("#resignBtn").show(),
+		$("#offerdrawBtn").show(),
+		$("#regretBtn").show(),
+		$("#AIThink").hide();
 	}
 	
 	if(d.match("waiting")){
@@ -145,7 +165,7 @@ onMessage = function(d) {
 		play.aiPace = o;	
 		play.serverAIPlay();
 		
-		setTimeout((function(){$("#regretBtn").hide();}),1000);
+		//setTimeout((function(){$("#regretBtn").hide();}),1000);
 	}
 	else {
 		play.aiPace = null;	
