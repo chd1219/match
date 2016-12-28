@@ -141,14 +141,25 @@ play.clickPoint = function(e, a) {
 		play.AIPlay(n + e + a),
         comm.light.visible = !1;		
     }
-},
+};
+var time;
+function echoTips(e){	
+	t = 0;
+	time = setInterval(function(){
+		$("#AIThink").text(e + "(" + (++t) + "s)"),
+		$("#AIThink").show();			
+	},1000);
+}
+function hideTips(){
+	clearInterval(time);
+};
 play.showThink = function() {
 	room_id = getUrlParam("roomid");
-	room_id ? ( play.my == -1 ? $("#AIThink").text("红方思考中。。。") : $("#AIThink").text("黑方思考中。。。") ) : ( movesIndex%2 == 0 ? $("#AIThink").text("红方思考中。。。") : $("#AIThink").text("黑方思考中。。。") );
-    $("#AIThink").show()
+	room_id ? ( play.my == -1 ? echoTips("红方思考中。。。") : echoTips("黑方思考中。。。") ) : ( movesIndex%2 == 0 ? echoTips("红方思考中。。。") : echoTips("黑方思考中。。。") );
 },
 play.hideThink = function() {
-    $("#AIThink").hide()
+    clearInterval(time);
+	$("#AIThink").hide();
 },
 play.stepPlay = function(e, a, m) {
     m = m || !1,
@@ -178,14 +189,12 @@ play.onlinePlay = function(e) {
 	console.log(e);
 },
 play.bAIPlay = function() {//黑
-	$("#AIThink").text("黑方思考中。。。");
-    $("#AIThink").show()
+	echoTips("黑方思考中。。。");
 	waitServerPlay = !0;
 	sendPosition(play.getFen(reverseMode ? comm.arrReverse(play.map) : play.map, -1));
 },
 play.rAIPlay = function() {//红
-	$("#AIThink").text("红方思考中。。。");
-    $("#AIThink").show()
+	echoTips("红方思考中。。。");
 	waitServerPlay = !0;
 	sendPosition(play.getFen(reverseMode ? comm.arrReverse(play.map) : play.map, 1));
 },

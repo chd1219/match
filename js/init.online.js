@@ -46,7 +46,7 @@ function shownewgame(){
     $("#resignBtn").hide(),
     $("#offerdrawBtn").hide(),
     $("#regretBtn").hide(),
-	$("#AIThink").hide();
+	hideTips();
 }
 
 function shownomal(){
@@ -56,8 +56,7 @@ function shownomal(){
     $("#resignBtn").hide(),
     $("#offerdrawBtn").hide(),
     $("#regretBtn").hide(),
-	$("#AIThink").text("等待用户加入"),
-	$("#AIThink").show();	
+	echoTips("等待用户加入")	
 }
 
 function hideAll(){
@@ -139,7 +138,7 @@ onMessage = function(d) {
 		$("#resignBtn").show(),
 		$("#offerdrawBtn").show(),
 		$("#regretBtn").show(),
-		$("#AIThink").hide();
+		hideTips();
 	}
 	
 	if(d.match("waiting")){
