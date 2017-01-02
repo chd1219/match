@@ -180,14 +180,17 @@ function cleanChess() {
     console.log(comm.chessLayer.numChildren);
     for (var e = 0; e < play.map.length; e++) for (var a = 0; a < play.map[e].length; a++) {
         var m = play.map[e][a];
-        if (m) {
-            var o = comm.mans[m].chess;
-            o.parent.removeChild(o)
-        }
+        removeChess(m);
     }
     comm.hidePane(),
     comm.hideDots(),
     comm.light.visible = !1
+}
+function removeChess(e) {
+	if (e) {
+		var o = comm.mans[e].chess;
+		o.parent.removeChild(o)
+	}
 }
 function getUrlParam(e) {
     var a = new RegExp("(^|&)" + e + "=([^&]*)(&|$)"),
@@ -594,7 +597,6 @@ comm.initChess = function(e, a) {
     intiPane(),
     initLight(),
     showBtns();
-	//initWebsocket()
 };
 comm.initChessEx = function(e, a) {
     play.isPlay = !0;
@@ -781,15 +783,18 @@ comm.createMans = function(e) {
     for (var a = 0; a < e.length; a++) for (var m = 0; m < e[a].length; m++) {
         var o = e[a][m];
         if (o) {
-            var n = new comm["class"].Man(o);
-            n.x = m,
-            n.y = a,
-            comm.mans[o] = n;
-            var t = addChess(n.pater, comm.spaceX * n.x + comm.pointStartX, comm.spaceY * n.y + comm.pointStartY);
-            n.chess = t,
-            n.move()
+			comm.createMan(a, m, o);
         }
     }
+},
+comm.createMan = function(a, m, o) {
+	var n = new comm["class"].Man(o);
+	n.x = m,
+	n.y = a,
+	comm.mans[o] = n;
+	var t = addChess(n.pater, comm.spaceX * n.x + comm.pointStartX, comm.spaceY * n.y + comm.pointStartY);
+	n.chess = t,
+	n.move()
 },
 comm.send = function(e) {
 	var a = {};

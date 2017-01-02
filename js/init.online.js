@@ -95,7 +95,8 @@ onload = function() {
 };
 
 function resignBtn() {
-    window.location = "online.html"
+	ws.send("resign");
+    window.location = "online.html";
 }
 
 onMessage = function(d) {

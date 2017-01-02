@@ -7,6 +7,7 @@ bill.init = function(e, a, k) {
     bill.my = bill.my || 1,
     bill.nowMap = a,
     bill.map = comm.arr2Clone(a),
+	bill.sMap = bill.sMap || [],
     bill.nowManKey = !1,
     bill.pace = bill.pace || [],
     bill.paceEx = bill.paceEx || [],
@@ -65,8 +66,7 @@ bill.onChessDrop = function() {
     comm.soundplay("drop"),
     setTimeout(e, 200)
 },
-bill.addCallOnDrop = function(e, a) {
-	
+bill.addCallOnDrop = function(e, a) {	
     callOnDrops.push(e),
     callOnDropsArgs.push(a)
 },
@@ -94,13 +94,12 @@ bill.send = function(e) {
 	if ( comm.movesNum == 0){
 		showFloatTip("还没开始下棋呢")
 		return;
-	}
-		
+	}		
 
 	var map = comm.getMap6Server(bill.cMap);
 	var moves = bill.getMoves6ServerEx();
 	var notes = bill.getNotes2Server();
-	var _json = {"map": map, "moves":moves, "notes":notes,"filename":comm.filename,"BillType":1};
+	var _json = {"map": map, "moves":moves, "notes":notes, "filename":comm.filename, "BillType":1};
 	$.ajax({
 		type: "POST",
 		url: 'addData.php',
@@ -144,7 +143,9 @@ bill.send = function(e) {
 },
 bill.cleanBroad = function(e) {
 	bill.cleanChess();
-	bill.sMap = comm.arr2Clone(bill.sMap1),
+	bill.cleanChess2();
+	bill.sMap = comm.arr2Clone(bill.sMapFull),
+	bill.sMapList = JSON.parse(JSON.stringify(bill.chessMan)),
 	bill.createMans(bill.sMap),
 	bill.init(3,bill.emptyMap,!1);		
 	$("#fullBtn").show();
@@ -153,7 +154,8 @@ bill.cleanBroad = function(e) {
 bill.fullBroad = function(e) {
 	bill.cleanChess();	
 	bill.cleanChess2();		
-	bill.sMap = comm.arr2Clone(bill.sMap2),
+	bill.sMap = comm.arr2Clone(bill.sMapEmpty),
+	bill.sMapList = JSON.parse(JSON.stringify(bill.emptychessMan)),
 	bill.init(3,comm.initMap,!1);	
 	$("#fullBtn").hide();
 	$("#clearBtn").show();
@@ -161,36 +163,27 @@ bill.fullBroad = function(e) {
 bill.clickCanvas = function(e) {
     var a = bill.getClickMan(e),
     m = bill.getClickPoint(e),
-    o = m.x,
-    n = m.y;
-	//if(a) bill.checkManDots(a);
-    a ? ((n < 0 || n > 9) ? (bill.clickMan2(a, o, n)) : bill.clickMan(a, o, n)) : bill.clickPoint(o, n);
+    x = m.x,
+    y = m.y;
+    a ?  bill.clickMan(a, x, y) : bill.clickPoint(x, y);
 	
 	if (bill.isPlay == !0){		
 		bill.replayBtnUpdate();
 		play.showThink();
 	}
 },
-bill.clickMan2 = function(e, a, m) {
-	
-    var o = comm.mans[e];
-	
-	bill.nowManKey = e; 
-	first ? (comm.soundplay("drop"), first = !1) : comm.soundplay("select"), comm.light.x = comm.spaceX * o.x + comm.pointStartX - 20, comm.light.y = comm.spaceY * o.y + comm.pointStartY - 24, comm.light.visible = !0
-
-};
-bill.clickMan = function(e, a, m) {
-	
-    var o = comm.mans[e];
-	
+bill.clickMan = function(e, x, y) { 	
+	if ( (y > -1 && y < 10) )	bill.clickManIn(e, x, y)
+	if ( (y < 0 || y > 9) )		bill.clickManOut(e, x, y)		
+}
+bill.clickManIn = function(e, a, m) {	//棋盘内->棋盘内	
+    var o = comm.mans[e];	
     if (bill.nowManKey && bill.nowManKey != e && o.my != bill.my)
 	{
 		//吃子
 		if (bill.isPlay == !0){
 			if (bill.indexOfPs(comm.mans[bill.nowManKey].ps, [a, m]))
-			{		
-				//if (movesIndex < moves.length) {showFloatTip("不是最后一步，请重试");return;}		
-				
+			{
 				o.isShow = !1,
 				bill.addRemoveOnDrop(o.chess);
 				var n = comm.mans[bill.nowManKey].x + "" + comm.mans[bill.nowManKey].y;
@@ -200,12 +193,7 @@ bill.clickMan = function(e, a, m) {
 				var t = comm.key2cid(e),
 				s = comm.toServerPos(comm.mans[bill.nowManKey].x, comm.mans[bill.nowManKey].y),
 				r = comm.toServerPos(a, m),
-				c = {
-					cid: t,
-					from: s,
-					to: r
-				};
-				//bill.addCallOnDrop(SAI, [2, c, onReqMove, onFault]),
+				c = { cid: t, from: s, to: r };
 				comm.mans[bill.nowManKey].x = a,
 				comm.mans[bill.nowManKey].y = m,
 				comm.mans[bill.nowManKey].alpha = 1,
@@ -241,15 +229,187 @@ bill.clickMan = function(e, a, m) {
 		}
     } 
 	else if (bill.isPlay ? o.my == bill.my : !0){
-		
-		(comm.mans[bill.nowManKey] && (comm.mans[bill.nowManKey].alpha = 1),
-		createbroad ? !0 : (comm.hideDots(), comm.hidePane(),comm.mans[e].alpha = 0.6,comm.mans[e].ps = comm.mans[e].bl(), comm.dot.dots = comm.mans[e].ps),		
-		bill.nowManKey = e, 
-		(bill.isPlay || createbroad) ? (comm.showDots()):(comm.hideDots()), 
-		first ? (comm.soundplay("drop"), first = !1) : comm.soundplay("select"), 
-		comm.light.x = comm.spaceX * o.x + comm.pointStartX - 20, comm.light.y = comm.spaceY * o.y + comm.pointStartY - 24, comm.light.visible = !0)
+		if (bill.nowManKey == e) {
+			bill.nowManKey = !1,		
+			comm.dot.dots = [],
+			comm.hideDots(),
+			comm.light.visible = !1	;
+		}
+		else {
+			(comm.mans[bill.nowManKey] && (comm.mans[bill.nowManKey].alpha = 1),
+			createbroad ? !0 : (comm.hideDots(), comm.hidePane(),comm.mans[e].alpha = 0.6,comm.mans[e].ps = comm.mans[e].bl(), comm.dot.dots = comm.mans[e].ps),		
+			bill.nowManKey = e, 
+			(bill.isPlay || createbroad) ? (comm.showDots()):(comm.hideDots()), 
+			first ? (comm.soundplay("drop"), first = !1) : comm.soundplay("select"), 
+			comm.light.x = comm.spaceX * o.x + comm.pointStartX - 20, comm.light.y = comm.spaceY * o.y + comm.pointStartY - 24, comm.light.visible = !0)
+		}			
 	}	
 };
+bill.clickManI2O = function(e, x, y) { //棋盘内->棋盘外	
+	var m = bill.nowManKey;
+	o = comm.mans[m];		
+		
+	y < 0 ? ( y = -1.5 ) : ( y = 10.5 );
+	
+	y < 0 ? ( o.my == -1 ? col = 0 : col = -1 ) : ( o.my == 1 ? col = 1 : col = -1 );
+	if (col == -1) return !1;
+	
+	var maptemp = {"C":0, "M":1, "P":2, "X":3, "S":4, "Z":5, "c":0, "m":1, "p":2, "x":3, "s":4, "z":5};
+	e = maptemp[m.slice(0, 1)];
+	if (e > -1) {
+		var templist = [];
+		templist = bill.sMapList[m.slice(0, 1)];
+		var oldchess = bill.sMap[col][e];
+		bill.sMap[col][e] = m;
+		templist.push(m);	
+	}
+	else {
+		showFloatTip("将帅不能移出棋盘");
+		bill.nowManKey = !1,		
+		comm.dot.dots = [],
+		comm.hideDots(),
+		comm.light.visible = !1	;	
+		return !1;
+	}		
+	delete bill.map[o.y][o.x];
+	o.x = e*1.5,
+	o.y = y,
+	o.animate();
+	//删除原来的棋子	
+	setTimeout(function(){removeChess(oldchess)},300);
+			
+	bill.nowManKey = !1,		
+	comm.dot.dots = [],
+	comm.hideDots(),
+	comm.light.visible = !1	;	
+}
+bill.clickManOut = function(e, x, y) { 
+	if (bill.nowManKey == e) {
+			bill.nowManKey = !1,		
+			comm.dot.dots = [],
+			comm.hideDots(),
+			comm.light.visible = !1	;	
+	}
+	else {		
+		if (bill.nowManKey) {
+			var o = comm.mans[bill.nowManKey];
+			if (o.y > -1 && o.y < 10) {
+				bill.clickManI2O(e,x,y)
+			}
+		}		
+		else {
+			var o = comm.mans[e];
+			bill.nowManKey = e; 
+			first ? (comm.soundplay("drop"), first = !1) : comm.soundplay("select"), comm.light.x = comm.spaceX * o.x + comm.pointStartX - 20, comm.light.y = comm.spaceY * o.y + comm.pointStartY - 24, comm.light.visible = !0
+		}		
+	}		
+},
+bill.clickPoint = function(e, a) {	
+	if (bill.isPlay == !0){ //棋谱模式	
+		bill.clickPointPlaying(e,a)
+	}
+	else if (bill.nowManKey) { //摆棋模式
+		bill.clickPointPre(e, a)
+	}	
+	bill.nowManKey = !1,		
+	comm.dot.dots = [],
+	comm.hideDots(),
+	comm.light.visible = !1	;
+},
+bill.clickPointPlaying = function(e, a) {//棋谱模式	
+	var m = bill.nowManKey;
+	o = comm.mans[m];	
+	if (bill.nowManKey && bill.indexOfPs(comm.mans[m].ps, [e, a])) 
+	{		
+		var n = o.x + "" + o.y;
+		delete bill.map[o.y][o.x],			
+		bill.map[a][e] = m,
+		comm.showPane(o.x, o.y, e, a);
+		var t = comm.key2cid(m),
+		s = comm.toServerPos(o.x, o.y),
+		r = comm.toServerPos(e, a),
+		c = { cid: t, from: s, to: r };
+		o.x = e,
+		o.y = a,
+		o.animate(),
+		
+		bill.pace.push(n + e + a),						
+		movesIndex++;
+		bill.branch(n + e + a),	
+		bill.my = -bill.my;	
+		bill.AIPlay();
+	}
+}
+bill.clickPointPre = function(e, a) {//摆棋模式
+	var m = bill.nowManKey;
+	o = comm.mans[m];	
+	//棋盘外->棋盘外
+	if ( (a<0 || a>9) && (o.y<0 || o.y>9) ) {
+		return;
+	}		
+	//棋盘内->棋盘外
+	if (a < 0 || a > 9){
+		a < 0 ? ( a = -1.5 ) : ( a = 10.5 );
+		
+		a < 0 ? ( o.my == -1 ? col = 0 : col = -1 ) : ( o.my == 1 ? col = 1 : col = -1 );
+		if (col == -1) return !1;
+		
+		var maptemp = {"C":0, "M":1, "P":2, "X":3, "S":4, "Z":5, "c":0, "m":1, "p":2, "x":3, "s":4, "z":5};
+		e = maptemp[m.slice(0, 1)];
+		if (e > -1) {
+			var templist = [];
+			templist = bill.sMapList[m.slice(0, 1)];
+			var oldchess = bill.sMap[col][e];
+			bill.sMap[col][e] = m;
+			e = e*1.5;
+			templist.push(m);	
+		}
+		else {
+			showFloatTip("将帅不能移出棋盘");	
+			return !1;
+		}				
+	}
+	else {//棋盘内->棋盘内
+		if(bill.checkMans(m,a,e)) {
+			bill.map[a][e] = m;
+		}					
+		else{
+			showFloatTip("摆放错误，请重试");
+			return !1;
+		}
+	}
+	//棋盘外->棋盘内
+	if (o.y < 0 || o.y > 9){
+		o.y < 0 ? (  col = 0 ) : ( col = 1 );
+		
+		delete bill.sMap[col][o.x/1.5];
+		//列表
+		var templist = [];
+		templist = bill.sMapList[m.slice(0, 1)];
+		for(var i=0;i<templist.length;i++){
+			if(templist[i] == m){
+				delete templist[i];
+				for(var j=i;j<templist.length-1;j++){
+					templist[j] = templist[j+1];
+				}
+				break;						
+			}					
+		}
+		templist.length -= 1;
+		newchess = templist[0];
+		bill.createMan(newchess, o.y, o.x),
+		bill.sMap[col][o.x/1.5] = newchess;
+	}
+	else {
+		delete bill.map[o.y][o.x];	
+	}
+		
+	o.x = e,
+	o.y = a,
+	o.animate();
+	//删除原来的棋子	
+	setTimeout(function(){removeChess(oldchess)},300);					
+},
 bill.branch = function(e){	
 	step = e;
 	//查找是否存在分支
@@ -260,16 +420,7 @@ bill.branch = function(e){
 		currentId = id;
 		bill.paceEx[movesIndex-1].push([step,id,preId]);
 		m = step.split(""),
-		o = {
-			src: {
-				x: parseInt(m[0]),
-				y: parseInt(m[1])
-			},
-			dst: {
-				x: parseInt(m[2]),
-				y: parseInt(m[3])
-			}
-		};
+		o = { src: {x: parseInt(m[0]), y: parseInt(m[1])}, dst: {x: parseInt(m[2]), y: parseInt(m[3])} };
 		moves.push(o);
 		return;
 	}
@@ -303,97 +454,6 @@ countPath = 0,
 shape = [],
 text = [],
 autoset = 0;
-bill.clickPoint = function(e, a) {
-    var m = bill.nowManKey;
-    o = comm.mans[m];
-	
-	if (bill.isPlay == !0){		
-		 if (bill.nowManKey && bill.indexOfPs(comm.mans[m].ps, [e, a])) 
-		{
-			//if (movesIndex < moves.length) {showFloatTip("不是最后一步，请重试");return;}				
-			var n = o.x + "" + o.y;
-			delete bill.map[o.y][o.x],
-			bill.map[a][e] = m,
-			comm.showPane(o.x, o.y, e, a);
-			var t = comm.key2cid(m),
-			s = comm.toServerPos(o.x, o.y),
-			r = comm.toServerPos(e, a),
-			c = {
-				cid: t,
-				from: s,
-				to: r
-			};
-			//bill.addCallOnDrop(SAI, [2, c, onReqMove, onFault]),
-			o.x = e,
-			o.y = a,
-			o.animate(),
-			bill.pace.push(n + e + a),						
-			bill.nowManKey = !1,
-			comm.dot.dots = [],
-			comm.hideDots(),
-			comm.light.visible = !1,			
-			movesIndex++;
-			bill.branch(n + e + a),	
-			bill.my = -bill.my;	
-			bill.AIPlay();
-		}
-	}
-	else if (bill.nowManKey) {			
-		switch(a){
-			case -1:
-				bill.sMap[0][e] = m;
-				break;
-			case -2:
-				bill.sMap[1][e] = m;
-				break;
-			case 10:
-				bill.sMap[2][e] = m;
-				break;
-			case 11:
-				bill.sMap[3][e] = m;		
-				break;
-			default:
-				if(bill.checkMans(m,a,e))
-					bill.map[a][e] = m;
-				else{
-					showFloatTip("摆放错误，请重试");
-					bill.nowManKey = !1,
-					comm.dot.dots = [],
-					comm.hideDots(),
-					comm.light.visible = !1	;
-					return !1;
-				}
-				break;			
-		}
-		switch(o.y){
-			case -1:
-				delete bill.sMap[0][o.x];
-				break;
-			case -2:
-				delete bill.sMap[1][o.x];
-				break;
-			case 10:
-				delete bill.sMap[2][o.x];
-				break;
-			case 11:
-				delete bill.sMap[3][o.x];		
-				break;
-			default:				
-				delete bill.map[o.y][o.x];
-				break;			
-		}
-			
-		o.x = e,
-		o.y = a,
-		o.animate();
-		
-		bill.nowManKey = !1,		
-		comm.dot.dots = [],
-		comm.hideDots(),
-		comm.light.visible = !1	;	
-	}   
-
-},
 bill.indexOfPs = function(e, a) {
     for (var m = 0; m < e.length; m++) if (e[m][0] == a[0] && e[m][1] == a[1]) return ! 0;
     return ! 1
@@ -401,31 +461,23 @@ bill.indexOfPs = function(e, a) {
 bill.getClickPoint = function(e) {
     var a,
     m = Math.round((e.stageY - comm.pointStartY - 20) / comm.spaceY);
-	(m == -1 || m == 10) ? (a = Math.round((e.stageX - comm.pointStartX - 20 - 0 * comm.spaceX) / comm.spaceX)) : (a = Math.round((e.stageX - comm.pointStartX - 20) / comm.spaceX));
-    return {
-        x: a,
-        y: m
-    }
+	( m < 0 || m > 9 ) ? (a = Math.round((e.stageX - comm.pointStartX - 20) / (1.5*comm.spaceX))) : (a = Math.round((e.stageX - comm.pointStartX - 20) / comm.spaceX));
+    return {x: a, y: m}
 },
 bill.getClickMan = function(e) {
     var a = bill.getClickPoint(e),
     m = a.x,
     o = a.y;
-	if (o == -1 && createbroad) return bill.sMap[0][m];
-	else if (o == -2 && createbroad) return bill.sMap[1][m];
-	else if (o == 10 && createbroad) return bill.sMap[2][m];
-	else if (o == 11 && createbroad) return bill.sMap[3][m];
+	if (o < 0 && createbroad) return bill.sMap[0][m];
+	else if (o > 9 && createbroad) return bill.sMap[1][m];
     else return 0 > m || m > 8 || 0 > o || o > 9 ? !1 : bill.map[o][m] && "0" != bill.map[o][m] ? bill.map[o][m] : !1
 },
 bill.drawLine = function (e,a) {	
-
 	var m = e.split("");
-
 	shape[a-1] = new createjs.Shape();  
 	var graphics = shape[a-1].graphics;  
 	  
-	text[a-1] = new createjs.Text(a,"16px Arial","blue");  
-  
+	text[a-1] = new createjs.Text(a,"16px Arial","blue");    
 	text[a-1].x = comm.pointStartX + comm.spaceX * m[2] + 20;
 	text[a-1].y = comm.pointStartY + comm.spaceY * m[3] + 20;
 	stage.addChild(text[a-1]);  
@@ -461,7 +513,6 @@ bill.save = function() {
 		return;
 	}
 	createbroad = !1;
-	//showFloatTip("保存棋谱");
 	bill.cMap = comm.arr2Clone(bill.map),
 	bill.cleanChess(),
 	bill.init(3,bill.map,!0);
@@ -527,7 +578,6 @@ bill.Play = function(e){
 	play.showThink();
 	switch(e) {
 		case 1:
-			//bill.my = 1;
 			bill.showPlaymode("红（自己）VS 黑（自己）");
 			break;
 		case 2:	
@@ -543,7 +593,7 @@ bill.Play = function(e){
 			bill.showPlaymode("红（电脑）VS 黑（电脑）");
 			clearInterval(autoset);
 			autoset = setInterval(bill.AIPlay, 2000);
-			break;		
+			break;
 	}
 },
 bill.replayNext = function() {
@@ -565,25 +615,24 @@ bill.replayNext = function() {
 			}
 		}
 		if(countPath == 0) {
-
 			bill.replayBtnUpdate();
 			return;
 		}
-		if(countPath == 1){
-				currentId = nextpace[0][1];				
-				movesIndex++;
-				moves = bill.getMoves4Server(1);
-				bill.cleanChess();
-				reverseMode ? bill.init(3, comm.arrReverse(bill.cMap), !0) : bill.init(3, bill.cMap, !0);
-				if ( movesIndex > 0 ) {					
-					for (var e = 0; movesIndex-1 > e; e++) 
-						bill.stepPlay(moves[e].src, moves[e].dst, !0);
-					bill.stepPlay(moves[e].src, moves[e].dst);
-				}
-				bill.replayBtnUpdate(),
-				bill.my = -bill.my;
-				bill.cleanLine();
-				return;
+		if(countPath == 1) {
+			currentId = nextpace[0][1];				
+			movesIndex++;
+			moves = bill.getMoves4Server(1);
+			bill.cleanChess();
+			reverseMode ? bill.init(3, comm.arrReverse(bill.cMap), !0) : bill.init(3, bill.cMap, !0);
+			if ( movesIndex > 0 ) {					
+				for (var e = 0; movesIndex-1 > e; e++) 
+					bill.stepPlay(moves[e].src, moves[e].dst, !0);
+				bill.stepPlay(moves[e].src, moves[e].dst);
+			}
+			bill.replayBtnUpdate(),
+			bill.my = -bill.my;
+			bill.cleanLine();
+			return;
 		};
 		for (var j=0;j< countPath;j++){
 			BranchPath = "BranchPath_"+j;
@@ -604,8 +653,7 @@ bill.replayNext = function() {
 				}
 				bill.replayBtnUpdate(),
 				bill.my = -bill.my;
-				$("#nextstepdialog").trigger("myclick");
-	
+				$("#nextstepdialog").trigger("myclick");	
 			});
 		}
 		popupDiv('nextstepdialog');	
@@ -677,16 +725,7 @@ bill.getMoves4Server = function(t) {
 				nextid = nextpaceEx[j][1];
 
 				var m = nextpaceEx[j][0].split(""),
-				o = {
-					src: {
-						x: parseInt(m[0]),
-						y: parseInt(m[1])
-					},
-					dst: {
-						x: parseInt(m[2]),
-						y: parseInt(m[3])
-					}
-				};
+				o = { src: {x: parseInt(m[0]), y: parseInt(m[1])}, dst: {x: parseInt(m[2]), y: parseInt(m[3])} };
 				e[a] = o;
 				break;
 			}			
@@ -701,36 +740,18 @@ bill.getMoves4Server = function(t) {
 				if(t == -1 && a == movesIndex-1) 
 					currentId = prepaceEx[j][2];
 				var m = prepaceEx[j][0].split(""),
-				o = {
-					src: {
-						x: parseInt(m[0]),
-						y: parseInt(m[1])
-					},
-					dst: {
-						x: parseInt(m[2]),
-						y: parseInt(m[3])
-					}
-				};
+				o = { src: {x: parseInt(m[0]), y: parseInt(m[1])}, dst: {x: parseInt(m[2]), y: parseInt(m[3])} };
 				e[a] = o;
 				break;
 			}			
 		}       
     }
-	if (movesIndex == 0){
+	if (movesIndex == 0) {
 		var prepaceEx = bill.paceEx[0];
 		for (j = 0;prepaceEx && j < prepaceEx.length; j++){
 			if (prepaceEx[j][1] == currentId) {
 				var m = prepaceEx[j][0].split(""),
-				o = {
-					src: {
-						x: parseInt(m[0]),
-						y: parseInt(m[1])
-					},
-					dst: {
-						x: parseInt(m[2]),
-						y: parseInt(m[3])
-					}
-				};
+				o = { src: {x: parseInt(m[0]), y: parseInt(m[1])}, dst: {x: parseInt(m[2]), y: parseInt(m[3])} };
 				e[0] = o;
 				break;
 			}			
@@ -740,16 +761,7 @@ bill.getMoves4Server = function(t) {
     return e;
 	for (var e = [], a = 0; a < bill.pace.length; a++) {
         var m = bill.pace[a].split(""),
-        o = {
-            src: {
-                x: parseInt(m[0]),
-                y: parseInt(m[1])
-            },
-            dst: {
-                x: parseInt(m[2]),
-                y: parseInt(m[3])
-            }
-        };
+		o = { src: {x: parseInt(m[0]), y: parseInt(m[1])}, dst: {x: parseInt(m[2]), y: parseInt(m[3])} };
         e[a] = o
     }
     return e
@@ -870,35 +882,26 @@ bill.cleanChess = function () {
     console.log(comm.chessLayer.numChildren);
     for (var e = 0; e < bill.map.length; e++) for (var a = 0; a < bill.map[e].length; a++) {
         var m = bill.map[e][a];
-        if (m) {
-            var o = comm.mans[m].chess;
-			if (o) {
-				o.parent.removeChild(o)
-			}
-        }
+        if (m) removeChess(m);
     }
 	
     comm.hidePane(),
     comm.hideDots(),
     comm.light.visible = !1
 },
-bill.cleanChess2 = function() {
+bill.cleanChess2 = function() {	
 	for (var e = 0; e < bill.sMap.length; e++) for (var a = 0; a < bill.sMap[e].length; a++) {
         var m = bill.sMap[e][a];
-        if (m) {
-            var o = comm.mans[m].chess;
-			if (o)  {
-				o.parent.removeChild(o);
-			}
-        }
+        if (m) removeChess(m);
     }
 },
 bill.BillType = 0,
 bill.notes = [],
 bill.emptyMap = [[, , , , "J0", , , , ""], [, , , , , , , ,"" ], [, , , , , , , , ""], [, , , , , , , , ""], [, , , , , , , , ""], [, , , , , , , ,"" ], [, , , , , , , ,"" ], [, , , , , , , ,"" ], [, , , , , , , ,"" ], [, , , ,"j0", , , , ""]],
-bill.sMap = [["C0", "M0", "P0", "X0", "S0","Z0","Z1" ],["C1", "M1", "P1", "X1","S1","Z2","Z3","Z4"], ["c0", "m0", "p0", "x0", "s0","z0", "z1"],["c1", "m1", "p1", "x1","s1", "z2", "z3", "z4"]],
-bill.sMap1 = [["C0", "M0", "P0", "X0", "S0","Z0","Z1" ],["C1", "M1", "P1", "X1","S1","Z2","Z3","Z4"], ["c0", "m0", "p0", "x0", "s0","z0", "z1"],["c1", "m1", "p1", "x1","s1", "z2", "z3", "z4"]],
-bill.sMap2 = [[, , , , , , , , ],[, , , , , ], [, , , , , , , , ,],[, , , , , ]],
+bill.sMapFull = [["C0", "M0", "P0", "X0", "S0","Z0","" ], ["c0", "m0", "p0", "x0", "s0","z0",""]],
+bill.sMapEmpty = [[, , , , , , , , ],[, , , , , ]],
+bill.chessMan = {"C":["C0","C1"],"M":["M0","M1"],"P":["P0","P1"],"S":["S0","S1"],"X":["X0","X1"],"Z":["Z0","Z1","Z2","Z3","Z4"],"c":["c0","c1"],"m":["m0","m1"],"p":["p0","p1"],"s":["s0","s1"],"x":["x0","x1"],"z":["z0","z1","z2","z3","z4"]},
+bill.emptychessMan = {"C":[],"M":[],"P":[],"S":[],"X":[],"Z":[],"c":[],"m":[],"p":[],"s":[],"x":[],"z":[]}
 bill.createMan = function(e,a,m) {
     if (e) {
 		var n = new comm["class"].Man(e);
@@ -913,20 +916,12 @@ bill.createMan = function(e,a,m) {
 bill.createMans = function(e) {
 	for(var m = 0; m < e[0].length; m++){
 		var o = e[0][m];
-		if(o) bill.createMan(o,-1,m);
+		if(o) bill.createMan(o,-1.5,m*1.5);
 	}
 	for(var m = 0; m < e[1].length; m++){
 		var o = e[1][m];
-		if(o) bill.createMan(o,-2,m);
+		if(o) bill.createMan(o,10.5,m*1.5);
 	}
-	for(var m = 0; m < e[2].length; m++){
-		var o = e[2][m];
-		if(o) bill.createMan(o,10,m);
-	}
-	for(var m = 0; m < e[3].length; m++){
-		var o = e[3][m];
-		if(o) bill.createMan(o,11,m);
-	}	
 },
 bill.bylawX = function() {
     var n = [];

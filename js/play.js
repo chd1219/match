@@ -43,8 +43,7 @@ play.onChessDrop = function() {
     //play.showThink(),
     setTimeout(e, 200)
 },
-play.addCallOnDrop = function(e, a) {
-	
+play.addCallOnDrop = function(e, a) {	
     callOnDrops.push(e),
     callOnDropsArgs.push(a)
 },
@@ -83,7 +82,6 @@ play.clickMan = function(e, a, m) {
                 from: s,
                 to: r
             };
-            //play.addCallOnDrop(SAI, [2, c, onReqMove, onFault]),
             comm.mans[play.nowManKey].x = a,
             comm.mans[play.nowManKey].y = m,
             comm.mans[play.nowManKey].alpha = 1,
@@ -130,7 +128,6 @@ play.clickPoint = function(e, a) {
             from: s,
             to: r
         };
-        //play.addCallOnDrop(SAI, [2, c, onReqMove, onFault]),
         o.x = e,
         o.y = a,
         o.animate(),
