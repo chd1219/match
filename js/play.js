@@ -178,12 +178,12 @@ play.onlinePlay = function(e) {
 	console.log(e);
 },
 play.bAIPlay = function() {/*黑*/
-	echoTips("黑方电脑思考中。。。");
+	play.showThink();
 	waitServerPlay = !0;
 	sendPosition(play.getFen(reverseMode ? comm.arrReverse(play.map) : play.map, -1));
 },
 play.rAIPlay = function() {/*红*/
-	echoTips("红方电脑思考中。。。");
+	play.showThink();
 	waitServerPlay = !0;
 	sendPosition(play.getFen(reverseMode ? comm.arrReverse(play.map) : play.map, 1));
 },
