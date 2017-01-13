@@ -70,7 +70,8 @@
             loader.loadFile({src:CDN_PATH+"js/AI.js"});
             loader.loadFile({src:CDN_PATH+"js/bill.js"});
             loader.loadFile({src:CDN_PATH+"js/play.js"});
-            loader.loadFile({src:CDN_PATH+"js/output.min.v7.js"});
+            loader.loadFile({src:CDN_PATH+"js/comm.js"});
+			loader.loadFile({src:CDN_PATH+"js/init.replay.js"});
             loader.loadFile({src:CDN_PATH+"assets/images/chess_slim_atlas_.json", type:"spritesheet", id:"chess_slim_atlas_"}, true);
             loader.loadFile({src:CDN_PATH+"libs/gameRes.min.v1.js"});
             loader.loadFile({src:CDN_PATH+"assets/images/f_atlas_.json", type:"spritesheet", id:"f_atlas_"}, true);
@@ -160,30 +161,6 @@
 		</div>
 	</div>
 	
-	<div id="settingdialog" class="settingdialog" style="display: none;">
-
-		<div>	
-			<input type="radio"  name ="fruit" value="1" checked="checked">红（自己）VS 黑（自己）
-			<br><br><br>
-			<input type="radio"  name ="fruit" value="2">红（自己）VS 黑（电脑）
-			<br><br><br>
-			<input type="radio"  name ="fruit" value="3">红（电脑）VS 黑（自己）
-			<br><br><br>
-			<input type="radio"  name ="fruit" value="4">红（电脑）VS 黑（电脑）
-			<br><br><br>
-			
-			<input type="button"  class="btn_dialog_cancle" value="">
-			<input type="button"  class="btn_dialog_ok" value="">
-		</div>		
-	</div>
-	
-	<div id="replaydialog" class="replaydialog" style="display: none;">是否回放？
-		<div>				
-			<input type="button"  class="btn_dialog_cancle" value="">
-			<input type="button"  class="btn_dialog_ok" value="">
-		</div>
-	</div>
-	
 	<div id="nextstepdialog" class="nextstepdialog" style="display: none;"></div>	
 	<div id="gameResult">
 		<div id="gameWin">
@@ -204,8 +181,6 @@
 			</div>
 			<div id="mode4" style="display: none;">
 				<!-- 棋谱模式 -->
-				<input type="button" id="settingBtn" value="">
-				<input type="button" id="noteBtn" value="">
 				<input type="button" id="reverseBtn" value="" style="display: none;">
 				<input type="button" id="prevBtn2" class="btnBase prevBtn2Disable">
 				<input type="button" id="nextBtn2" class="btnBase nextBtn2">				                  

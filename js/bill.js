@@ -55,7 +55,6 @@ bill.onChessDrop = function() {
         for (var e = callOnDrops.length - 1; e >= 0; e--) {
             var a = callOnDrops.splice(e, 1)[0],
             m = callOnDropsArgs.splice(e, 1)[0];
-          //  a.apply(this, m)
         }
         bill.isAnimating = !1
     }
@@ -207,7 +206,7 @@ bill.clickManIn = function(e, a, m) {	//棋盘内->棋盘内
 				movesIndex++; 
 				bill.branch(n + a + m),		
 				bill.my = -bill.my;		
-				"j0" == e && bill.onGameEnd( - 1),
+				"j0" == e && bill.onGameEnd(-1),
 				"J0" == e && bill.onGameEnd(1);
 				bill.AIPlay();
 			}	
@@ -230,10 +229,7 @@ bill.clickManIn = function(e, a, m) {	//棋盘内->棋盘内
     } 
 	else if (bill.isPlay ? o.my == bill.my : !0){
 		if (bill.nowManKey == e) {
-			bill.nowManKey = !1,		
-			comm.dot.dots = [],
-			comm.hideDots(),
-			comm.light.visible = !1	;
+			bill.cancleSelected();
 		}
 		else {
 			(comm.mans[bill.nowManKey] && (comm.mans[bill.nowManKey].alpha = 1),
@@ -262,13 +258,13 @@ bill.clickManI2O = function(e, x, y) { //棋盘内->棋盘外
 		var oldchess = bill.sMap[col][e];
 		bill.sMap[col][e] = m;
 		templist.push(m);	
+		
+		stage.removeChild(chessnum[col*6+e]),
+		templist.length ? bill.drawNum(col,e,templist.length) : !1;
 	}
 	else {
 		showFloatTip("将帅不能移出棋盘");
-		bill.nowManKey = !1,		
-		comm.dot.dots = [],
-		comm.hideDots(),
-		comm.light.visible = !1	;	
+		bill.cancleSelected();	
 		return !1;
 	}		
 	delete bill.map[o.y][o.x];
@@ -278,6 +274,9 @@ bill.clickManI2O = function(e, x, y) { //棋盘内->棋盘外
 	//删除原来的棋子	
 	setTimeout(function(){removeChess(oldchess)},300);
 			
+	bill.cancleSelected();
+}
+bill.cancleSelected = function(){
 	bill.nowManKey = !1,		
 	comm.dot.dots = [],
 	comm.hideDots(),
@@ -285,16 +284,16 @@ bill.clickManI2O = function(e, x, y) { //棋盘内->棋盘外
 }
 bill.clickManOut = function(e, x, y) { 
 	if (bill.nowManKey == e) {
-			bill.nowManKey = !1,		
-			comm.dot.dots = [],
-			comm.hideDots(),
-			comm.light.visible = !1	;	
+		bill.cancleSelected();
 	}
 	else {		
 		if (bill.nowManKey) {
 			var o = comm.mans[bill.nowManKey];
 			if (o.y > -1 && o.y < 10) {
 				bill.clickManI2O(e,x,y)
+			}
+			else {
+				bill.cancleSelected();
 			}
 		}		
 		else {
@@ -311,10 +310,7 @@ bill.clickPoint = function(e, a) {
 	else if (bill.nowManKey) { //摆棋模式
 		bill.clickPointPre(e, a)
 	}	
-	bill.nowManKey = !1,		
-	comm.dot.dots = [],
-	comm.hideDots(),
-	comm.light.visible = !1	;
+	bill.cancleSelected();
 },
 bill.clickPointPlaying = function(e, a) {//棋谱模式	
 	var m = bill.nowManKey;
@@ -363,6 +359,9 @@ bill.clickPointPre = function(e, a) {//摆棋模式
 			bill.sMap[col][e] = m;
 			e = e*1.5;
 			templist.push(m);	
+			
+			stage.removeChild(chessnum[col*6+e/1.5]),
+			templist.length ? bill.drawNum(col,e/1.5,templist.length) : !1;
 		}
 		else {
 			showFloatTip("将帅不能移出棋盘");	
@@ -398,6 +397,8 @@ bill.clickPointPre = function(e, a) {//摆棋模式
 		templist.length -= 1;
 		newchess = templist[0];
 		bill.createMan(newchess, o.y, o.x),
+		stage.removeChild(chessnum[col*6+o.x/1.5]),
+		templist.length ? bill.drawNum(col,o.x/1.5,templist.length) : !1;
 		bill.sMap[col][o.x/1.5] = newchess;
 	}
 	else {
@@ -434,8 +435,7 @@ bill.branch = function(e){
 		bill.paceEx[movesIndex-1].push([step,id,preId]);
 	}	
 };
-bill.checkbranch = function(e){
-	
+bill.checkbranch = function(e){	
 	for(var i=0;i<bill.paceEx[movesIndex-1].length;i++){
 		var o=bill.paceEx[movesIndex-1][i];
 		if(o[2] == currentId && e == o[0]){
@@ -450,6 +450,7 @@ createbroad = !1,
 currentId = 0,
 id = 0,
 moves = [],
+chessnum = [],
 countPath = 0,
 shape = [],
 text = [],
@@ -490,6 +491,15 @@ bill.drawLine = function (e,a) {
 	stage.addChild(shape[a-1]);  
 	stage.update();  
 },
+bill.drawNum = function (i,j,n){	
+	a = i*6+j;
+	x = j*1.5;
+	i == 0 ? y = -1.5 : y = 10.5;
+	chessnum[a] = new createjs.Text(n,"20px Arial","red");    
+	chessnum[a].x = comm.pointStartX + comm.spaceX * x + 15;
+	chessnum[a].y = comm.pointStartY + comm.spaceY * y - 22;
+	stage.addChild(chessnum[a]);
+}
 bill.cleanLine = function(){
 	for(var a=0;a<text.length;a++){
 		stage.removeChild(text[a]),
@@ -560,12 +570,8 @@ bill.setting = function() {
 					}
 				}
 				var chkObjs = $("input[name='voicemode']");
-				for(var i=0;i<chkObjs.length;i++){
-					if(chkObjs[i].checked){
-						voicemode = i+1;
-						break;
-					}	
-				}						
+				chkObjs[0].checked ? voicemode = 1 : voicemode = 0;
+						
 				bill.Play(playmode);
 				hideDiv('settingdialog');    
 			})
@@ -705,10 +711,7 @@ bill.replayTipHide = function() {
     if (comm.replayTip) {
         var a = comm.replayTip;
         comm.replayTip = void 0,
-        createjs.Tween.get(a).to({
-            alpha: 0
-        },
-        1e3).call(e)
+        createjs.Tween.get(a).to({lpha: 0}, 1e3).call(e)
     }
 },
 bill.getMoves4Server = function(t) {
@@ -731,7 +734,7 @@ bill.getMoves4Server = function(t) {
 			}			
 		}       
     }
-	//向前回溯	
+	/*向前回溯*/	
 	for (a = movesIndex-1; a >= 0; a--) {		
         var prepaceEx = bill.paceEx[a];
 		for (j = 0;prepaceEx && j < prepaceEx.length; j++){
@@ -855,7 +858,7 @@ bill.AIclickMan = function(e, a, m, o) {
     comm.mans[bill.nowManKey].x = a,
     comm.mans[bill.nowManKey].y = m,
     o ? comm.mans[bill.nowManKey].move() : comm.mans[bill.nowManKey].animate(),
-	"j0" == e && bill.onGameEnd( - 1),
+	"j0" == e && bill.onGameEnd(-1),
 	"J0" == e && bill.onGameEnd(1),
     bill.nowManKey = !1
 },
@@ -894,6 +897,9 @@ bill.cleanChess2 = function() {
         var m = bill.sMap[e][a];
         if (m) removeChess(m);
     }
+	for(var a=0;a<chessnum.length;a++){
+		stage.removeChild(chessnum[a])
+	}
 },
 bill.BillType = 0,
 bill.notes = [],
@@ -916,12 +922,18 @@ bill.createMan = function(e,a,m) {
 bill.createMans = function(e) {
 	for(var m = 0; m < e[0].length; m++){
 		var o = e[0][m];
-		if(o) bill.createMan(o,-1.5,m*1.5);
+		if(o){
+			bill.createMan(o,-1.5,m*1.5);			
+			m == 5 ? bill.drawNum(0,m,5) : bill.drawNum(0,m,2);
+		}
 	}
 	for(var m = 0; m < e[1].length; m++){
 		var o = e[1][m];
-		if(o) bill.createMan(o,10.5,m*1.5);
-	}
+		if(o) {
+			bill.createMan(o,10.5,m*1.5);
+			m == 5 ? bill.drawNum(1,m,5) : bill.drawNum(1,m,2);
+		} 
+	} 
 },
 bill.bylawX = function() {
     var n = [];

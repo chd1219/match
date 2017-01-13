@@ -77,11 +77,7 @@ play.clickMan = function(e, a, m) {
             var t = comm.key2cid(e),
             s = comm.toServerPos(comm.mans[play.nowManKey].x, comm.mans[play.nowManKey].y),
             r = comm.toServerPos(a, m),
-            c = {
-                cid: t,
-                from: s,
-                to: r
-            };
+            c = { cid: t, from: s, to: r };
             comm.mans[play.nowManKey].x = a,
             comm.mans[play.nowManKey].y = m,
             comm.mans[play.nowManKey].alpha = 1,
@@ -93,7 +89,7 @@ play.clickMan = function(e, a, m) {
             comm.hideDots(),
             comm.light.visible = !1,			
 			play.AIPlay(n + a + m),
-            "j0" == e && play.onGameEnd( - 1),
+            "j0" == e && play.onGameEnd(-1),
             "J0" == e && play.onGameEnd(1);						
         }
     } else {
@@ -123,11 +119,7 @@ play.clickPoint = function(e, a) {
         var t = comm.key2cid(m),
         s = comm.toServerPos(o.x, o.y),
         r = comm.toServerPos(e, a),
-        c = {
-            cid: t,
-            from: s,
-            to: r
-        };
+        c = { cid: t, from: s, to: r };
         o.x = e,
         o.y = a,
         o.animate(),
@@ -152,7 +144,7 @@ function hideTips(){
 };
 play.showThink = function() {
 	room_id = getUrlParam("roomid");
-	room_id ? ( play.my == -1 ? echoTips("红方思考中。。。") : echoTips("黑方思考中。。。") ) : ( movesIndex%2 == 0 ? echoTips("红方思考中。。。") : echoTips("黑方思考中。。。") );
+	room_id ? ( play.my == -1 ? echoTips("红方思考中。。。") : echoTips("黑方思考中。。。") ) : ( movesIndex%2 == 0 ? ($("#AIThink").text("红方思考中。。。"),$("#AIThink").show()) : ($("#AIThink").text("黑方思考中。。。"),$("#AIThink").show()) );
 },
 play.hideThink = function() {
     clearInterval(time);
@@ -185,13 +177,13 @@ play.onlinePlay = function(e) {
 	sendPosition("move "+e);
 	console.log(e);
 },
-play.bAIPlay = function() {//黑
-	echoTips("黑方思考中。。。");
+play.bAIPlay = function() {/*黑*/
+	echoTips("黑方电脑思考中。。。");
 	waitServerPlay = !0;
 	sendPosition(play.getFen(reverseMode ? comm.arrReverse(play.map) : play.map, -1));
 },
-play.rAIPlay = function() {//红
-	echoTips("红方思考中。。。");
+play.rAIPlay = function() {/*红*/
+	echoTips("红方电脑思考中。。。");
 	waitServerPlay = !0;
 	sendPosition(play.getFen(reverseMode ? comm.arrReverse(play.map) : play.map, 1));
 },
@@ -220,7 +212,7 @@ play.serverAIPlay = function() {
         var a = play.map[e[3]][e[2]];
 
         a ? setTimeout(play.AIclickMan, 1000, a, e[2], e[3]) : setTimeout(play.AIclickPoint, 1000, e[2], e[3]);
-		//锁定，等待1s后解锁
+		/*锁定，等待1s后解锁*/
 		setTimeout((function(){waitServerPlay = !1;}),1000);
 		if(playmode == 1) setTimeout((function(){checkIsFinalKill();}),1800);
 		//if(playmode == 4) checkIsFinalKill();
@@ -247,11 +239,11 @@ play.ParseMsg = function(d) {
 		var e = d.split("bestmove "); 
 		
 		if(e[1].match("null") || e[1].match("none")){
-			play.onGameEnd( play.my, !0);
+			play.my == 1 ? play.onGameEnd(-1) : play.onGameEnd(1);
 			return;
 		}
 		var o = e[1].split(""); 
-		//坐标变换(a-i)->(0-8),(0-9)->(9-0)
+		/*坐标变换(a-i)->(0-8),(0-9)->(9-0)*/
 		for(var i=0;i<4;i++){
 			o[i] = {"a":"0","b":"1","c":"2","d":"3","e":"4","f":"5","g":"6","h":"7","i":"8","0":"9","1":"8","2":"7","3":"6","4":"5","5":"4","6":"3","7":"2","8":"1","9":"0"}[o[i]] || "";			                      
 		}
@@ -280,21 +272,15 @@ play.AIclickMan = function(e, a, m, o) {
     comm.mans[play.nowManKey].y = m,
     o ? comm.mans[play.nowManKey].move() : comm.mans[play.nowManKey].animate(),
     play.nowManKey = !1,
-    "j0" == e && play.onGameEnd( - 1),
+    "j0" == e && play.onGameEnd(-1),
     "J0" == e && play.onGameEnd(1),
-   // mode == MODE_PLAY && play.hideThink()
     play.hideThink();
-	//checkIsFinalKill();
-	//setTimeout((function(){checkIsFinalKill();}),100);
 },
 play.AIclickPoint = function(e, a, m) {
     var o = play.nowManKey,
     n = comm.mans[o];
     play.nowManKey && (delete play.map[comm.mans[play.nowManKey].y][comm.mans[play.nowManKey].x], play.map[a][e] = o, comm.showPane(n.x, n.y, e, a), n.x = e, n.y = a, m ? n.move() : n.animate(), play.nowManKey = !1),
-    //mode == MODE_PLAY && play.isPlay && play.hideThink()
 	play.hideThink();
-	//checkIsFinalKill();
-	//setTimeout((function(){checkIsFinalKill();}),100);
 },
 play.indexOfPs = function(e, a) {
     for (var m = 0; m < e.length; m++) if (e[m][0] == a[0] && e[m][1] == a[1]) return ! 0;
@@ -303,10 +289,7 @@ play.indexOfPs = function(e, a) {
 play.getClickPoint = function(e) {
     var a = Math.round((e.stageX - comm.pointStartX - 20) / comm.spaceX),
     m = Math.round((e.stageY - comm.pointStartY - 20) / comm.spaceY);
-    return {
-        x: a,
-        y: m
-    }
+    return { x: a, y: m }
 },
 play.getClickMan = function(e) {
     var a = play.getClickPoint(e),
@@ -315,28 +298,26 @@ play.getClickMan = function(e) {
     return 0 > m || m > 8 || 0 > o || o > 9 ? !1 : play.map[o][m] && "0" != play.map[o][m] ? play.map[o][m] : !1
 },
 play.onGameEndLose = function() {
-    play.onGameEnd( - 1, 1)
+    play.onGameEnd(-1, 1)
 },
 play.onGameEnd = function(e, a) {
     play.isPlay = !1,
     comm.onGameEnd(e),
     play.hideThink();
     if(reverseMode){
-        -1 === e ? (console.log("恭喜你，你赢了！"), play.showWin()) : (console.log("很遗憾，你输了！"), play.showLose())
+        -1 === e ? play.showWin() : play.showLose()
     }
    else{
-        1 === e ? (console.log("恭喜你，你赢了！"), play.showWin()) : (console.log("很遗憾，你输了！"), play.showLose())
+        1 === e ? play.showWin() : play.showLose()
     }	
 },
 play.showWin = function() {
     comm.soundplay("gamewin"),
-	showFloatTip("恭喜你，你赢了！");
-   // showResult(1)
+	showFloatTip("红方胜！");
 },
 play.showLose = function() {
     comm.soundplay("gamelose"),
-	showFloatTip("很遗憾，你输了！");
-   // showResult(0)
+	showFloatTip("黑方胜！");
 };
 play.getFen = function(e,a){
 	var result = "position fen ";
@@ -356,7 +337,7 @@ play.getFen = function(e,a){
 				result += ""+coutZero;
 				coutZero = 0;
 			}
-			//将棋盘数组转化成FEN格式
+			/*将棋盘数组转化成FEN格式*/
 			var board={"J0":"k","X0":"b","X1":"b","S0":"a","S1":"a","Z0":"p","Z1":"p","Z2":"p","Z3":"p","Z4":"p","C0":"r","C1":"r","M0":"n","M1":"n","P0":"c","P1":"c","j0":"K","x0":"B","x1":"B","s0":"A","s1":"A","z0":"P","z1":"P","z2":"P","z3":"P","z4":"P","c0":"R","c1":"R","m0":"N","m1":"N","p0":"C","p1":"C"}[map] || ""; 
 			
 			result += board;

@@ -25,8 +25,8 @@ function initWebsocket(){
 }
 function loadConfig() {
     comm.initChess(comm.initMap);
-	bill.create();
-//	initWebsocket();
+	bill.create();	
+	initWebsocket();
 }
 function initLayer(e) {
     initCanvas(e);

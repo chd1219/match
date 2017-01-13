@@ -454,7 +454,7 @@ function onReqMove(e) {
 function checkIsFinalKill(o) {
     var e = AI.init(play.pace.join(""), 3, 1);
     return console.log("checkIsFinalKill pace", e),
-    (play.my == 1) ? (e ? void 0 : void play.onGameEnd( - 1, !0)) : (e ? void 0 : void play.onGameEnd( 1, !0))
+    (play.my == 1) ? (e ? void 0 : void play.onGameEnd( -1, !0)) : (e ? void 0 : void play.onGameEnd( 1, !0))
 }
 var serverData = serverData || {},
 comm = comm || {};
@@ -463,6 +463,7 @@ movesIndex = 0,
 movesTipsShow = !0,
 reverseMode = 0,
 movesInterval,
+voicemode = 1,
 autoset;
 var canRestart = !1;var lastTime = 0,
 commTipsImg;var Dots = {};
@@ -628,7 +629,7 @@ comm.restart = function() {
 	
 },
 comm.soundplay = function(e) {
-	createjs.Sound.play(e);
+	voicemode ? createjs.Sound.play(e) : !1;
 },
 comm.replayNext = function() {
     clearInterval(movesInterval),
