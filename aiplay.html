@@ -18,7 +18,7 @@
 			}
 			// 其他系统
 		} else {
-			document.write('<meta name="viewport" content="width=640, user-scalable=no, target-densitydpi=device-dpi">');
+			document.write('<meta name="viewport" content="width=device-width,initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no"/>');
 		}
 	</script>
     <link href="./css/chess.css" rel="stylesheet" type="text/css"> 
@@ -55,7 +55,8 @@
             loader.loadFile({src:CDN_PATH+"assets/images/chess_slim_atlas_.json", type:"spritesheet", id:"chess_slim_atlas_"}, true);
             loader.loadFile({src:CDN_PATH+"libs/gameRes.min.v1.js"});
             loader.loadFile({src:CDN_PATH+"assets/images/f_atlas_.json", type:"spritesheet", id:"f_atlas_"}, true);
-            loader.loadManifest([{src:CDN_PATH+"assets/images/board2.png", id:"Board"}]);
+            //loader.loadFile({src:CDN_PATH+"js/mikuCanvasImageUtil.js"});
+			loader.loadManifest([{src:CDN_PATH+"assets/images/board.png", id:"Board"}]);
         }
 		
         function handleFileLoad(evt)
@@ -116,8 +117,9 @@
 
 <body onload="init()">
 	<div id="AIThink">对方正在思考中...</div>
+    
+	<canvas id="chess" width="640" height="1023">您的浏览器不支持Html5 canvas，请换一个浏览器。</canvas>
 
-    <canvas id="chess" width="640" height="1023"></canvas>
     <div id="tipsInfo">	象棋微学堂手机软件	</div>	
 	<div id="noteInfo"></div>
 	
@@ -143,9 +145,9 @@
 		<div id="resultBg">
 		</div>
 	</div>
-	<div id="chessBox">
+	<div id="chessBox" style="display: none;">
 		<div id="btnBox">
-			<div id="mode1">
+			<div id="mode1" >
 				<input type="button" id="restartBtn" class="btnBase restartBtn">
 				<input type="button" id="regretBtn" class="btnBase regretBtn">
 				<input type="button" id="sendBtn" value="">

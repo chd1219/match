@@ -1,32 +1,27 @@
-<!DOCTYPE HTML>
-<html>
-<head>
-<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-<title> 象棋微学堂手机软件</title>
-    <link href="./css/chess.css" rel="stylesheet" type="text/css"> 
-	<script src="js/settings.js"></script>
+{template 'header'}
+	<link href="{MODULE_URL}template/mobile/match/css/chess.css" rel="stylesheet" type="text/css"> 
+	<script src="{MODULE_URL}template/mobile/match/js/settings.js"></script>
+    <script src="{MODULE_URL}template/mobile/match/libs/preloadjs-0.6.1.min.js"></script>    	
+	
     <script type="application/javascript">
         var canvas, stage, exportRoot;
         var chessLayer,chessTopLayer,chessBottonLayer;
-
+		var chessdata = $.parseJSON('{$chessdata}');
+			
         var MODE_PLAY = 1;
         var MODE_REPLAY = 2;
-		var MODE_BILL = 5;
-        var mode = 5;
+		var MODE_BILL = 3;
+        var mode = 2;
 		var playmode = 1;
         var file,level_id = -1;
         var chapterTitle = '';
-
-		var CDN_PATH = '';
+        
+		var CDN_PATH = "{MODULE_URL}template/mobile/match/";
         var JS_VER_COMBINED = 'combined';
         var JS_VER_MIN = 'min';
         var JS_VER = JS_VER_MIN;
-
-    </script>
-	
-    <script src="libs/preloadjs-0.6.1.min.js"></script>
-    
-	<script>
+		var baseURL = '{MODULE_URL}template/mobile/match/';
+		var REPLAY_GET_URL = 'save/';
 
         var startLoadTime = 0;
         var fullLoadTime = 0;
@@ -45,7 +40,7 @@
             loader.loadFile({src:CDN_PATH+"libs/tweenjs-0.6.1."+JS_VER+".js"});
             loader.loadFile({src:CDN_PATH+"libs/movieclip-0.8.1."+JS_VER+".js"});
             loader.loadFile({src:CDN_PATH+"libs/soundjs-0.6.1."+JS_VER+".js"});
-			loader.loadFile({src:CDN_PATH+"libs/jquery-2.1.0.min.js"});
+            loader.loadFile({src:CDN_PATH+"libs/jquery-2.1.0.min.js"});
             loader.loadFile({src:CDN_PATH+"libs/md5.min.js"});
             loader.loadFile({src:CDN_PATH+"libs/reconnecting-websocket.min.js"});
             loader.loadFile({src:CDN_PATH+"js/ScaleBitmap.min.js"});
@@ -53,11 +48,17 @@
             loader.loadFile({src:CDN_PATH+"js/bill.js"});
             loader.loadFile({src:CDN_PATH+"js/play.js"});
             loader.loadFile({src:CDN_PATH+"js/comm.js"});
-            loader.loadFile({src:CDN_PATH+"js/init.bill.js"});
+			loader.loadFile({src:CDN_PATH+"js/init.replay.js"});
             loader.loadFile({src:CDN_PATH+"assets/images/chess_slim_atlas_.json", type:"spritesheet", id:"chess_slim_atlas_"}, true);
             loader.loadFile({src:CDN_PATH+"libs/gameRes.min.v1.js"});
             loader.loadFile({src:CDN_PATH+"assets/images/f_atlas_.json", type:"spritesheet", id:"f_atlas_"}, true);
-            loader.loadManifest([{src:CDN_PATH+"assets/images/board2.png", id:"Board"}]);			
+            var ua = navigator.userAgent;
+			if (/Android (\d+\.\d+)/.test(ua)){
+				loader.loadManifest([{src:CDN_PATH+"assets/images/board.png", id:"Board"}]);
+				// 其他系统
+			} else {
+				loader.loadManifest([{src:CDN_PATH+"assets/images/board2.png", id:"Board"}]);
+			}
         }
 		
         function handleFileLoad(evt)
@@ -101,7 +102,7 @@
             }
         }
 
-        var fileTotal = 17;
+        var fileTotal = 16;
         var fileCurrent = 0;
 
         function fileLoaded(event)
@@ -121,7 +122,6 @@
 
     <canvas id="chess" width="640" height="1023"></canvas>
     <div id="tipsInfo">	象棋微学堂手机软件	</div>	
-	<div id="playmode"></div>
 	<div id="noteInfo"></div>
 	
 	<div id="notedialog" class="notedialog" style="display: none;font-size: x-large;">注释
@@ -144,38 +144,7 @@
 		</div>
 	</div>
 	
-	<div id="settingdialog" class="settingdialog" style="display: none;">
-
-		<div>	
-			<input type="radio"  name="playmode" value="1" checked="checked">红（自己）VS 黑（自己）
-			<br>			<br>			<br>
-			<input type="radio"  name="playmode" value="2">红（自己）VS 黑（电脑）
-			<br>			<br>			<br>
-			<input type="radio"  name="playmode" value="3">红（电脑）VS 黑（自己）
-			<br>			<br>			<br>
-			<input type="radio"  name="playmode" value="4">红（电脑）VS 黑（电脑）
-			<br>			<br>			<br>
-			音效
-			<input type="radio"  name="voicemode" value="1" checked="checked">开
-			<input type="radio"  name="voicemode" value="2">关
-			<br>			<br>			<br>
-			
-			<input type="button"  class="btn_dialog_cancle" value="">
-			<input type="button"  class="btn_dialog_ok" value="">
-	
-		</div>		
-	</div>
-	
-	<div id="replaydialog" class="replaydialog" style="display: none;">是否回放？
-		<div>				
-			<input type="button"  class="btn_dialog_cancle" value="">
-			<input type="button"  class="btn_dialog_ok" value="">
-		</div>
-	</div>
-	
-	<div id="nextstepdialog" class="nextstepdialog" style="display: none;">		
-	</div>
-	
+	<div id="nextstepdialog" class="nextstepdialog" style="display: none;"></div>	
 	<div id="gameResult">
 		<div id="gameWin">
 		</div>
@@ -186,35 +155,18 @@
 	</div>
 	<div id="chessBox">
 		<div id="btnBox">
-			<div id="mode1" style="display: none;">
-				<input type="button" id="restartBtn" class="btnBase restartBtn">
-				<input type="button" id="regretBtn" class="btnBase regretBtn">
-				<input type="button" id="sendBtn" value="">
-				<input type="button" id="returnBtn1" value="">
-			</div>
-			<div id="mode2" style="display: none;">
-				<!-- 回放模式 -->
-				<input type="button" id="replayBtn" class="btnBase replayBtnDisable">
-				<input type="button" id="prevBtn" class="btnBase prevBtnDisable">
-				<input type="button" id="nextBtn" class="btnBase nextBtn">
-				<input type="button" id="returnBt2" value="">
-			</div>
 			<div id="mode4" style="display: none;">
 				<!-- 棋谱模式 -->
-				<input type="button" id="settingBtn1" value="设置">
-				<input type="button" id="noteBtn1" value="注释">
-				<input type="button" id="reverseBtn1" value="翻转">
-				<input type="button" id="prevBtn21" value="上一步" class="btnBase prevBtn2Disable">
-				<input type="button" id="nextBtn21" value="下一步" class="btnBase nextBtn2">				                  
-				<input type="button" id="sendBtn21" value="发送棋谱">
-				<input type="button" id="returnBtn31" value="返回">
-			</div>
-			<div id="mode5" style="display: none;">
-				<!-- 棋盘模式 -->
-				<input type="button" id="fullBtn1" value="摆满棋盘">
-				<input type="button" id="clearBtn1" value="清空棋盘">
-				<input type="button" id="saveBtn1" value="保存棋盘">
-				<input type="button" id="returnBtn41" value="返回">
+				<input type="button" id="blackautoplayBtn" value="电脑执黑">
+				<input type="button" id="redautoplayBtn" value="电脑执红">
+				<input type="button" id="soundBtn" value="音效关">
+				<br>			<br>
+				<input type="button" id="noteBtn" value="注释">
+				<input type="button" id="reverseBtn" value="翻转">
+				<input type="button" id="prevBtn" value="上一步">
+				<input type="button" id="nextBtn" value="下一步">				                  
+				<input type="button" id="sendBtn" value="发送棋谱">
+				<br>			<br>		                  
 			</div>
 		</div>
 	</div>

@@ -81,8 +81,8 @@ play.clickMan = function(e, a, m) {
             comm.mans[play.nowManKey].x = a,
             comm.mans[play.nowManKey].y = m,
             comm.mans[play.nowManKey].alpha = 1,
-            comm.mans[play.nowManKey].animate(),
-            play.pace.push(n + a + m),
+            comm.mans[play.nowManKey].animate();
+            if (mode == 1) play.pace.push(n + a + m);
             play.nowManKey = !1,
             comm.hidePane(),
             comm.dot.dots = [],
@@ -122,8 +122,8 @@ play.clickPoint = function(e, a) {
         c = { cid: t, from: s, to: r };
         o.x = e,
         o.y = a,
-        o.animate(),
-        play.pace.push(n + e + a),
+        o.animate();
+        if (mode == 1) play.pace.push(n + e + a);
         play.nowManKey = !1,
         comm.dot.dots = [],
         comm.hideDots(),
@@ -200,9 +200,9 @@ play.serverAIPlay = function() {
 			e[3] = 9-e[3];
 		}
 
-        play.pace.push(e.join(""));
+        if (mode == 1) play.pace.push(e.join(""));
 		movesIndex++; 
-		if(playmode != "1"){			
+		if(r_autoset != 0 || b_autoset != 0){			
 			bill.branch(e.join(""));
 			bill.replayBtnUpdate();	
 		}
@@ -226,7 +226,7 @@ play.clientPlay = function() {
 			if(play.my == 1)		return void play.onGameEnd(-1);
 			else return void play.onGameEnd(1);
 		}			
-        play.pace.push(e.join(""));
+        if (mode == 1) play.pace.push(e.join(""));
         var a = play.map[e[1]][e[0]];
         play.nowManKey = a;
         var a = play.map[e[3]][e[2]];

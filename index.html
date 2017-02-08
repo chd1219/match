@@ -1,63 +1,107 @@
-<!DOCTYPE HTML>
-<html>
-<head>
-<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-<title> 象棋微学堂手机软件 </title>
-	<script type="text/javascript">
-		var phoneWidth = parseInt(window.screen.width);
-		var phoneScale = phoneWidth/640;
-		var ua = navigator.userAgent;
-		if (/Android (\d+\.\d+)/.test(ua)){
-			var version = parseFloat(RegExp.$1);
-			// andriod 2.3
-			if(version>2.3){
-				document.write('<meta name="viewport" content="width=640, minimum-scale = '+phoneScale+', maximum-scale = '+phoneScale+', target-densitydpi=device-dpi">');
-				// andriod 2.3以上
-			}else{
-				document.write('<meta name="viewport" content="width=640, target-densitydpi=device-dpi">');
-			}
-			// 其他系统
-		} else {
-			document.write('<meta name="viewport" content="width=640, user-scalable=no, target-densitydpi=device-dpi">');
-		}
-	</script>
-    <link href="./css/menu.css" rel="stylesheet" type="text/css"> 
-	<script src="libs/jquery-2.1.0.min.js"></script>   
-	<script src="js/settings.js"></script>
-    <script type="application/javascript">
-        var canvas, stage, exportRoot;       
- 
-        function init() {
-            $("#aiplayBtn").click(function(){
-				var href = baseURL+'aiplay.html';	
-				location.href = href;	
-			});
-            $("#billBtn").click(function(){
-				var href = baseURL+'bill.html';	
-				location.href = href;	
-			});
-            $("#onlineBtn").click(function(){
-				var href = baseURL+'online.html';	
-				location.href = href;	
-			});
-        }
-    </script>
-</head>
+{template 'header'}
+<body>
+<header style="top: 0;display: table;width: 100%;height: 45px;padding: 0;table-layout: fixed;border-top: 0;border-bottom: 0;-webkit-touch-callout: none;position:fixed;z-index:14;background-color:#f7f7f7">
 
-<body onload="init()">
-    <canvas id="chess" width="640" height="1023"></canvas>
-	<div id="bg" style="text-align: center">
-		<img src="assets/images/board2.png">
-	</div>
-	<div id="chessBox">
-		<div id="btnBox">			
-			<div id="mode1">
-				<input type="button" id="aiplayBtn">
-				<input type="button" id="billBtn">
-				<input type="button" id="onlineBtn">
-			</div>
-		</div>
-	</div>
+    <div class="weui-search-bar" id="searchBar">
+        <form action="{php echo $this->createMobileUrl('index', array('op'=>'search','categoryid'=>$categoryid));}"
+              method="post" class="weui-search-bar__form" role="form" target="index_main">
+            <div class="weui-search-bar__box">
+                <i class="weui-icon-search"></i>
+                <input type="search" class="weui-search-bar__input" name='keywords' style="margin-bottom:0px;"
+                       id="searchInput" placeholder="搜索棋谱名称/棋手" value='{$keywords}' required="">
+                <a href="javascript:" class="weui-icon-clear" id="searchClear"></a>
+            </div>
+            <label class="weui-search-bar__label" id="searchText">
+                <i class="weui-icon-search"></i>
+                <span>搜索</span>
+            </label>
+        </form>
+        <a href="javascript:" class="weui-search-bar__cancel-btn" id="searchCancel">取消</a>
+    </div>
+
+
+</header>
+<nav class="mui-bar mui-bar-tab">
+    <a class="mui-tab-item mui-active" href="{php echo $this->createMobileUrl('index');}">
+        <span class="mui-icon mui-icon-home"></span>
+        <span class="mui-tab-label">首页</span>
+    </a>
+
+    <a class="mui-tab-item" href="{php echo $this->createMobileUrl('player');}">
+        <span class="mui-icon mui-icon-person"></span>
+        <span class="mui-tab-label">棋手</span>
+    </a>
+    <a class="mui-tab-item" href="{php echo $this->createMobileUrl('search');}">
+        <span class="mui-icon mui-icon-search"></span>
+        <span class="mui-tab-label">搜索</span>
+    </a>
+    <a class="mui-tab-item" href="{php echo $this->createMobileUrl('publish');}">
+        <span class="mui-icon mui-icon-compose"></span>
+        <span class="mui-tab-label">发布</span>
+    </a>
+    <a class="mui-tab-item" href="{php echo $this->createMobileUrl('self');}">
+        <span class="mui-icon mui-icon-contact"></span>
+        <span class="mui-tab-label">我的</span>
+    </a>
+</nav>
+
+{php echo register_jssdk(false);}
+
+<script type="text/javascript">
+    wx.ready(function () {
+        var shareData = {
+            title: "{$setting['sitename']}-{$_W['account']['name']}",
+            desc: "{php echo $sharedesc;}",
+            link: "{php echo $shareurl;}",
+            imgUrl: "{php echo $sharelogo;}",
+            trigger: function (res) {
+            },
+            complete: function (res) {
+            },
+            success: function (res) {
+            },
+            cancel: function (res) {
+            },
+            fail: function (res) {
+            }
+        };
+        wx.onMenuShareTimeline(shareData);
+        wx.onMenuShareAppMessage(shareData);
+        wx.onMenuShareQQ(shareData);
+        wx.onMenuShareWeibo(shareData);
+        wx.onMenuShareQZone(shareData);
+
+    });
+</script>
+
+
+<script>
+
+    mui.init({
+        subpages: [{
+            url: '{php echo $this->createMobileUrl('index',array('op'=>'search','categoryid'=>$categoryid));}',
+            id: 'index_main',
+            styles: {
+                top: '45px',//mui标题栏默认高度为45px；
+                bottom: '50px'//默认为0px，可不定义；
+            }
+        }]
+    });
+
+    mui(".mui-bar-tab").on('tap', '.mui-tab-item', function () {
+
+        mui.openWindow({
+            id: this.href,
+            url: this.href,
+            waiting: {
+                autoShow: true,//自动显示等待框，默认为true
+                title: '正在加载...',//等待对话框上显示的提示内容
+
+            }
+        });
+    })
+
+
+</script>
 </body>
-
 </html>

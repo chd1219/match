@@ -1,4 +1,7 @@
 var bill = bill || {};
+var boutside = -1.1;
+var routside = 10.6;
+var outsidescale = 1.62;
 bill.init = function(e, a, k) {
 	mode = MODE_BILL;	
     var a = a || comm.initMap;
@@ -101,11 +104,11 @@ bill.send = function(e) {
 	var _json = {"map": map, "moves":moves, "notes":notes, "filename":comm.filename, "BillType":1};
 	$.ajax({
 		type: "POST",
-		url: 'addData.php',
+		url: saveURL ,
 		dataType: "text",		
 		data: _json,
 		success: function(response,status,xhr) {
-			location.href = baseURL+"replay.html?file="+comm.filename;
+			location.href = replayURL + "&file=" + comm.filename;
 			console.log(_json);				
 		},
 		error: function(response,status,xhr){
@@ -245,7 +248,7 @@ bill.clickManI2O = function(e, x, y) { //棋盘内->棋盘外
 	var m = bill.nowManKey;
 	o = comm.mans[m];		
 		
-	y < 0 ? ( y = -1.5 ) : ( y = 10.5 );
+	y < 0 ? ( y = boutside ) : ( y = routside );
 	
 	y < 0 ? ( o.my == -1 ? col = 0 : col = -1 ) : ( o.my == 1 ? col = 1 : col = -1 );
 	if (col == -1) return !1;
@@ -268,7 +271,7 @@ bill.clickManI2O = function(e, x, y) { //棋盘内->棋盘外
 		return !1;
 	}		
 	delete bill.map[o.y][o.x];
-	o.x = e*1.5,
+	o.x = e*outsidescale,
 	o.y = y,
 	o.animate();
 	//删除原来的棋子	
@@ -345,7 +348,7 @@ bill.clickPointPre = function(e, a) {//摆棋模式
 	}		
 	//棋盘内->棋盘外
 	if (a < 0 || a > 9){
-		a < 0 ? ( a = -1.5 ) : ( a = 10.5 );
+		a < 0 ? ( a = boutside ) : ( a = routside );
 		
 		a < 0 ? ( o.my == -1 ? col = 0 : col = -1 ) : ( o.my == 1 ? col = 1 : col = -1 );
 		if (col == -1) return !1;
@@ -357,11 +360,11 @@ bill.clickPointPre = function(e, a) {//摆棋模式
 			templist = bill.sMapList[m.slice(0, 1)];
 			var oldchess = bill.sMap[col][e];
 			bill.sMap[col][e] = m;
-			e = e*1.5;
+			e = e*outsidescale;
 			templist.push(m);	
 			
-			stage.removeChild(chessnum[col*6+e/1.5]),
-			templist.length ? bill.drawNum(col,e/1.5,templist.length) : !1;
+			stage.removeChild(chessnum[col*6+e/outsidescale]),
+			templist.length ? bill.drawNum(col,e/outsidescale,templist.length) : !1;
 		}
 		else {
 			showFloatTip("将帅不能移出棋盘");	
@@ -381,7 +384,7 @@ bill.clickPointPre = function(e, a) {//摆棋模式
 	if (o.y < 0 || o.y > 9){
 		o.y < 0 ? (  col = 0 ) : ( col = 1 );
 		
-		delete bill.sMap[col][o.x/1.5];
+		delete bill.sMap[col][o.x/outsidescale];
 		//列表
 		var templist = [];
 		templist = bill.sMapList[m.slice(0, 1)];
@@ -397,9 +400,9 @@ bill.clickPointPre = function(e, a) {//摆棋模式
 		templist.length -= 1;
 		newchess = templist[0];
 		bill.createMan(newchess, o.y, o.x),
-		stage.removeChild(chessnum[col*6+o.x/1.5]),
-		templist.length ? bill.drawNum(col,o.x/1.5,templist.length) : !1;
-		bill.sMap[col][o.x/1.5] = newchess;
+		stage.removeChild(chessnum[col*6+o.x/outsidescale]),
+		templist.length ? bill.drawNum(col,o.x/outsidescale,templist.length) : !1;
+		bill.sMap[col][o.x/outsidescale] = newchess;
 	}
 	else {
 		delete bill.map[o.y][o.x];	
@@ -462,7 +465,7 @@ bill.indexOfPs = function(e, a) {
 bill.getClickPoint = function(e) {
     var a,
     m = Math.round((e.stageY - comm.pointStartY - 20) / comm.spaceY);
-	( m < 0 || m > 9 ) ? (a = Math.round((e.stageX - comm.pointStartX - 20) / (1.5*comm.spaceX))) : (a = Math.round((e.stageX - comm.pointStartX - 20) / comm.spaceX));
+	( m < 0 || m > 9 ) ? (a = Math.round((e.stageX - comm.pointStartX - 20) / (outsidescale*comm.spaceX))) : (a = Math.round((e.stageX - comm.pointStartX - 20) / comm.spaceX));
     return {x: a, y: m}
 },
 bill.getClickMan = function(e) {
@@ -493,10 +496,10 @@ bill.drawLine = function (e,a) {
 },
 bill.drawNum = function (i,j,n){	
 	a = i*6+j;
-	x = j*1.5;
-	i == 0 ? y = -1.5 : y = 10.5;
+	x = j*outsidescale;
+	i == 0 ? y = boutside : y = routside;
 	chessnum[a] = new createjs.Text(n,"20px Arial","red");    
-	chessnum[a].x = comm.pointStartX + comm.spaceX * x + 15;
+	chessnum[a].x = comm.pointStartX + comm.spaceX * x + 45;
 	chessnum[a].y = comm.pointStartY + comm.spaceY * y - 22;
 	stage.addChild(chessnum[a]);
 }
@@ -534,7 +537,7 @@ bill.save = function() {
 	movesIndex = 0,
 	bill.pace = [],
 	bill.replayBtnUpdate();
-	bill.setting();
+	//bill.setting();
 },
 bill.note = function() {
 	popupDiv('notedialog');		
@@ -553,54 +556,32 @@ bill.note = function() {
 				}
 			});	
 },
-bill.setting = function() {		
-	clearInterval(autoset);
-	popupDiv('settingdialog');	
-	$("#settingdialog").on('click', '.btn_dialog_cancle', function () {          
-				hideDiv('settingdialog');  
-				playmode = 1;
-				bill.Play(playmode);
-				//$("#playmode").hide();
-			}).on('click', '.btn_dialog_ok', function () {  
-				var chkObjs = $("input[name='playmode']");
-				for(var i=0;i<chkObjs.length;i++){
-					if(chkObjs[i].checked){
-						playmode = i+1;
-						break;
-					}
-				}
-				var chkObjs = $("input[name='voicemode']");
-				chkObjs[0].checked ? voicemode = 1 : voicemode = 0;
-						
-				bill.Play(playmode);
-				hideDiv('settingdialog');    
-			})
+bill.bPlay = function(){
+	b_autoset != 0 ? (clearInterval(b_autoset), $("#blackautoplayBtn").val("电脑执黑"),b_autoset = 0) : (
+	b_autoset = setInterval(function(){
+		if(waitServerPlay) return;
+		play.map  = bill.map;	
+		if(movesIndex%2 == 1){//黑
+			play.bAIPlay();		
+			play.my = -1;
+			bill.my = 1;
+		} 	
+	}, 2000), $("#blackautoplayBtn").val("取消执黑"));
 },
-bill.showPlaymode = function(e){
-	$("#playmode").text(e);
-	$("#playmode").show();
+bill.rPlay = function(){
+	r_autoset != 0 ? ( clearInterval(r_autoset),$("#redautoplayBtn").val("电脑执红"),r_autoset = 0) : (
+	r_autoset = setInterval(function (){
+		if(waitServerPlay) return;
+		play.map  = bill.map;	
+		if(movesIndex%2 == 0) {//红
+			play.rAIPlay();		
+			play.my = 1;
+			bill.my = -1;
+		}
+	}, 2000),$("#redautoplayBtn").val("取消执红"))
 },
-bill.Play = function(e){
-	play.showThink();
-	switch(e) {
-		case 1:
-			bill.showPlaymode("红（自己）VS 黑（自己）");
-			break;
-		case 2:	
-			bill.showPlaymode("红（自己）VS 黑（电脑）");
-			bill.AIPlay();			
-			break;
-		case 3:
-			bill.showPlaymode("红（电脑）VS 黑（自己）");
-			reverseMode ? !0 : bill.reverse();
-			bill.AIPlay();
-			break;
-		case 4:
-			bill.showPlaymode("红（电脑）VS 黑（电脑）");
-			clearInterval(autoset);
-			autoset = setInterval(bill.AIPlay, 2000);
-			break;
-	}
+bill.sound = function(){
+	voicemode==1 ? (voicemode = 0, $("#soundBtn").val("音效开")) : (voicemode = 1,$("#soundBtn").val("音效关"))
 },
 bill.replayNext = function() {
 	countPath = 0;
@@ -923,14 +904,14 @@ bill.createMans = function(e) {
 	for(var m = 0; m < e[0].length; m++){
 		var o = e[0][m];
 		if(o){
-			bill.createMan(o,-1.5,m*1.5);			
+			bill.createMan(o,boutside,m*outsidescale);			
 			m == 5 ? bill.drawNum(0,m,5) : bill.drawNum(0,m,2);
 		}
 	}
 	for(var m = 0; m < e[1].length; m++){
 		var o = e[1][m];
 		if(o) {
-			bill.createMan(o,10.5,m*1.5);
+			bill.createMan(o,routside,m*outsidescale);
 			m == 5 ? bill.drawNum(1,m,5) : bill.drawNum(1,m,2);
 		} 
 	} 

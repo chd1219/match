@@ -15,7 +15,8 @@ var CDN_PATH = '';
 var JS_VER_COMBINED = 'combined';
 var JS_VER_MIN = 'min';
 var JS_VER = JS_VER_MIN;
-
+var canvaswidth = 540;
+var canvasheight = 1023;
 var baseURL = 'http://localhost/match/';
 //var baseURL = 'http://chd.xueyunkeji.com/match/';
 var REPLAY_GET_URL = baseURL+'save/';

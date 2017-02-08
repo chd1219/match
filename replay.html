@@ -18,11 +18,11 @@
 			}
 			// 其他系统
 		} else {
-			document.write('<meta name="viewport" content="width=640, user-scalable=no, target-densitydpi=device-dpi">');
+			document.write('<meta name="viewport" content="width=device-width,initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no"/>');
 		}
 	</script>
-    <link href="./css/chess.css" rel="stylesheet" type="text/css"> 
-	<script src="js/settings.js"></script>
+    <link href="css/chess.css" rel="stylesheet" type="text/css"> 
+    <script src="libs/preloadjs-0.6.1.min.js"></script>    
     <script type="application/javascript">
         var canvas, stage, exportRoot;
         var chessLayer,chessTopLayer,chessBottonLayer;
@@ -35,11 +35,12 @@
         var file,level_id = -1;
         var chapterTitle = '';
         
-		var CDN_PATH = '';
+		var CDN_PATH = "";
         var JS_VER_COMBINED = 'combined';
         var JS_VER_MIN = 'min';
         var JS_VER = JS_VER_MIN;
-
+		var baseURL = '{MODULE_URL}template/mobile/match/';
+		var REPLAY_GET_URL = 'save/';
     </script>
 	
     <script src="libs/preloadjs-0.6.1.min.js"></script>
@@ -174,18 +175,17 @@
 		<div id="btnBox">
 			<div id="mode2" style="display: none;">
 				<!-- 棋谱模式 -->
-				<input type="button" id="replayBtn" class="btnBase replayBtnDisable">
-				<input type="button" id="prevBtn" class="btnBase prevBtnDisable">
-				<input type="button" id="nextBtn" class="btnBase nextBtn">
-				<input type="button" id="returnBtn1" value="">
+				<input type="button" id="replayBtn" value="重播">
+				<input type="button" id="prevBtn" value="上一步" >
+				<input type="button" id="nextBtn" value="下一步" >
+				<br>				<br>				<br>
 			</div>
 			<div id="mode4" style="display: none;">
 				<!-- 棋谱模式 -->
-				<input type="button" id="reverseBtn" value="" style="display: none;">
-				<input type="button" id="prevBtn2" class="btnBase prevBtn2Disable">
-				<input type="button" id="nextBtn2" class="btnBase nextBtn2">				                  
-				<input type="button" id="sendBtn2" value="">
-				<input type="button" id="returnBtn3" value="">
+				<input type="button" id="reverseBtn" value="翻转" style="display: none;">
+				<input type="button" id="prevBtn2" value="上一步">
+				<input type="button" id="nextBtn2" value="下一步">	
+				<br>				<br>				<br>
 			</div>
 		</div>
 	</div>

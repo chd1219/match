@@ -77,13 +77,11 @@ function initWebsocket(){
 	};
 	// when the connection is closed, this method is called
 	ws.onclose = function () {
-		//alert("onclose");
-		//reconnect();
+
 	}	
-		// when the connection is error, this method is called
+	// when the connection is error, this method is called
 	ws.onerror = function () {
-		//alert("onerror");
-		//reconnect();
+
 	}	
 }
 var heartCheck = {
@@ -122,8 +120,17 @@ function addChess(e) {
     a
 }
 function intiBoard() {
-    var e = new lib.Board;
-    chessBottonLayer.addChild(e)
+	var ua = navigator.userAgent;
+	if (/Android (\d+\.\d+)/.test(ua)){
+		var e = new lib.Board;
+		e.y = 100;
+		chessBottonLayer.addChild(e)
+		// 其他系统
+	} else {
+		var e = new lib.Board;
+		chessBottonLayer.addChild(e)
+	}
+	
 }
 function initDots() {
     for (var e = 0; 10 > e; e++) {
@@ -255,8 +262,20 @@ function requestServerStart(e) {
 function loadSound(e) {
     fileLoaded(e)
 }
+function resizeCanvas(){	
+	stageWidth =  window.screen.width;
+	stageHeight = window.screen.height-150;
+	canvas = document.getElementById("chess");
+	//if (stageWidth/stageHeight > 0.6)
+		canvas.style.height = stageHeight + 'px';
+	//else
+	//	canvas.style.width = stageWidth + 'px';
+	//alert('stageWidth:'+stageWidth+', stageHeight: '+stageHeight);
+}
 function initCanvas(e){
-	canvas = document.getElementById("chess"),
+	resizeCanvas();
+	
+	canvas = document.getElementById("chess");
     images = images || {},
     ss = ss || {},
     createjs.Sound.alternateExtensions = ["mp3"],
@@ -294,7 +313,8 @@ function initCanvas(e){
 	createjs.Ticker.addEventListener("tick", enterFrame),	
 	setTimeout(hideLoading, 200),	
     commTipsImg = new Image,
-    commTipsImg.src = "assets/images/commTips.png";	
+    commTipsImg.src = CDN_PATH + "assets/images/commTips.png";	
+	
 	comm.init();
 }
 function stageClick(e) {
@@ -336,51 +356,6 @@ function showResult(e) {
 }
 function hideResult() {
     $("#gameResult").hide()
-}
-function initLayer1(e) {
-    canvas = document.getElementById("chess"),
-    images = images || {},
-    ss = ss || {},
-    createjs.Sound.alternateExtensions = ["mp3"],
-    createjs.Sound.on("fileload", loadSound),
-    createjs.Sound.registerSound(CDN_PATH + "assets/audio/select.mp3", "select"),
-    createjs.Sound.registerSound(CDN_PATH + "assets/audio/drop.mp3", "drop"),
-    createjs.Sound.registerSound(CDN_PATH + "assets/audio/gamelose.mp3", "gamelose"),
-    createjs.Sound.registerSound(CDN_PATH + "assets/audio/gamewin.mp3", "gamewin");
-    var a = e.target;
-    ss.chess_slim_atlas_ = a.getResult("chess_slim_atlas_"),
-    exportRoot = new lib.chess_slim,
-    ss.f_atlas_ = a.getResult("f_atlas_"),
-    new res.f,
-    stage = new createjs.Stage(canvas),
-    stage.addChild(exportRoot),
-    stage.update(),
-    createjs.Touch.enable(stage),
-    stage.on("stagemousedown", stageClick),
-    chessLayer = comm.chessLayer = new createjs.Container,
-    chessLayer.mouseEnabled = !1,
-    chessLayer.mouseChildren = !1,
-    chessTopLayer = comm.chessTopLayer = new createjs.Container,
-    chessTopLayer.mouseEnabled = !1,
-    chessTopLayer.mouseChildren = !1,
-    chessBottonLayer = comm.chessBottonLayer = new createjs.Container,
-    chessBottonLayer.mouseEnabled = !1,
-    chessBottonLayer.mouseChildren = !1,
-    chessTopLayer.x = chessLayer.x = 0,
-    chessTopLayer.y = chessLayer.y = 0,
-    stage.addChild(chessBottonLayer),
-    stage.addChild(chessLayer),
-    stage.addChild(chessTopLayer),
-    createjs.Ticker.setFPS(lib.properties.fps),
-    createjs.Ticker.addEventListener("tick", stage),
-	createjs.Ticker.addEventListener("tick", enterFrame),
-    comm.init(),
-    comm.onload(),
-    loadConfig(),
-    showBtns(),
-    setTimeout(hideLoading, 200),
-    commTipsImg = new Image,
-    commTipsImg.src = "assets/images/commTips.png"	
 }
 function showFloatTip(e, a) {
     function m(e) {
@@ -458,17 +433,45 @@ function checkIsFinalKill(o) {
 }
 var serverData = serverData || {},
 comm = comm || {};
-var fullMap, fullMoves, moves = [],
+var fullMap, 
+fullMoves, 
+moves = [],
 movesIndex = 0,
 movesTipsShow = !0,
 reverseMode = 0,
 movesInterval,
 voicemode = 1,
-autoset;
-var canRestart = !1;var lastTime = 0,
-commTipsImg;var Dots = {};
-comm.emptyMap = [[, , , , , , , ,"" ], [, , , , , , , , ""], [, , , , , , , , ""], [, , , , , , , , ""], [, , , , , , , , ""], [, , , , , , , , ""], [, , , , , , , , ""], [, , , , , , , , ""], [, , , , , , , , ""], [, , , , , , , , ""]];
-comm.initMap = [["C0", "M0", "X0", "S0", "J0", "S1", "X1", "M1", "C1"], [, , , , , , , , ""], [, "P0", , , , , , "P1","",], ["Z0", , "Z1", , "Z2", , "Z3", , "Z4"], [, , , , , , , , ""], [, , , , , , , , ""], ["z0", , "z1", , "z2", , "z3", , "z4"], [, "p0", , , , , , "p1",""], [, , , , , , , , ""], ["c0", "m0", "x0", "s0", "j0", "s1", "x1", "m1", "c1"]],
+autoset,
+r_autoset = 0,
+b_autoset = 0;
+var canRestart = !1;
+var lastTime = 0,
+commTipsImg;
+var Dots = {};
+comm.emptyMap = [
+	[, , , , , , , , ""], 
+	[, , , , , , , , ""],
+	[, , , , , , , , ""], 
+	[, , , , , , , , ""], 
+	[, , , , , , , , ""], 
+	[, , , , , , , , ""], 
+	[, , , , , , , , ""], 
+	[, , , , , , , , ""], 
+	[, , , , , , , , ""], 
+	[, , , , , , , , ""]
+ ];
+comm.initMap = [
+	["C0", "M0", "X0", "S0", "J0", "S1", "X1", "M1", "C1"], 
+	[, , , , , , , , ""], 
+	[, "P0", , , , , , "P1","",], 
+	["Z0", , "Z1", , "Z2", , "Z3", , "Z4"], 
+	[, , , , , , , , ""], 
+	[, , , , , , , , ""], 
+	["z0", , "z1", , "z2", , "z3", , "z4"], 
+	[, "p0", , , , , , "p1",""], 
+	[, , , , , , , , ""], 
+	["c0", "m0", "x0", "s0", "j0", "s1", "x1", "m1", "c1"]
+],
 comm["class"] = comm["class"] || {};
 comm["class"].Man = function(e, a, m) {
     this.pater = e.slice(0, 1);
@@ -529,15 +532,19 @@ comm.hideDots = function() {
     for (var e in comm.Dots) comm.Dots[e].visible = !1
 },
 comm.init = function(e) {
-    comm.width = 640,
-    comm.height = 723,
+    comm.width = canvas.width,
+    comm.height = canvas.height,
     comm.spaceX = 67,
     comm.spaceY = 67,
-    comm.pointStartX = 32,
-    comm.pointStartY = 29+150
+	comm.pointStartX = 31,
+    comm.pointStartY = 29+100
 },
-comm.id2name = {16 : "J", 17 : "S", 18 : "X", 19 : "M", 20 : "C", 21 : "P", 22 : "Z", 8 : "j", 9 : "s", 10 : "x", 11 : "m", 12 : "c", 13 : "p", 14 : "z"},
-comm.name2id = {J: 16, S: 17, X: 18, M: 19, C: 20, P: 21, Z: 22, j: 8, s: 9, x: 10, m: 11, c: 12, p: 13, z: 14},
+comm.id2name = {
+	16 : "J", 17 : "S", 18 : "X", 19 : "M", 20 : "C", 21 : "P", 22 : "Z", 8 : "j", 9 : "s", 10 : "x", 11 : "m", 12 : "c", 13 : "p", 14 : "z"
+},
+comm.name2id = {
+	J: 16, S: 17, X: 18, M: 19, C: 20, P: 21, Z: 22, j: 8, s: 9, x: 10, m: 11, c: 12, p: 13, z: 14
+},
 comm.parseMap = function(e) {
     for (var a = e,
     m = comm.emptyMap.concat(), o = {},
@@ -825,12 +832,12 @@ comm.send = function(e) {
 	var _json = {"map": map, "moves":moves, "filename":comm.filename};
 	$.ajax({
 		type: "POST",
-		url: 'addData.php',
+		url: saveURL,
 		dataType: "text",		
 		data: _json,
 		success: function(response,status,xhr) {
 			console.log(_json);
-			var href = baseURL+'replay.html?file='+comm.filename;	
+			var href = replayURL+'&file='+comm.filename;	
 			popupDiv('replaydialog');
 			$('#replaydialog').on('click', '.btn_dialog_cancle', function () {                    
 							hideDiv('replaydialog');
@@ -853,7 +860,9 @@ comm.arrReverse = function(e) {
     for (var a = [], m = 0; m < e.length; m++) a[m] = e[e.length-1-m].reverse().slice();
     return a
 },
-comm.keys = {c0: "c", c1: "c", m0: "m", m1: "m", x0: "x", x1: "x", s0: "s", s1: "s", j0: "j", p0: "p", p1: "p", z0: "z", z1: "z", z2: "z", z3: "z", z4: "z", z5: "z", C0: "c", C1: "C", M0: "M", M1: "M", X0: "X", X1: "X", S0: "S", S1: "S", J0: "J", P0: "P", P1: "P", Z0: "Z", Z1: "Z", Z2: "Z", Z3: "Z", Z4: "Z", Z5: "Z"},
+comm.keys = {
+	c0: "c", c1: "c", m0: "m", m1: "m", x0: "x", x1: "x", s0: "s", s1: "s", j0: "j", p0: "p", p1: "p", z0: "z", z1: "z", z2: "z", z3: "z", z4: "z", z5: "z", C0: "c", C1: "C", M0: "M", M1: "M", X0: "X", X1: "X", S0: "S", S1: "S", J0: "J", P0: "P", P1: "P", Z0: "Z", Z1: "Z", Z2: "Z", Z3: "Z", Z4: "Z", Z5: "Z"
+	},
 comm.bylaw = {},
 comm.bylaw.c = function(e, a, m, o) {
     for (var n = [], t = e - 1; t >= 0; t--) {
