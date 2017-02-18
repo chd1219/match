@@ -52,8 +52,10 @@ var __getChessData = function(e) {
 		play.isFoul = !1,
 		movesIndex = 0,
 		play.pace = [],
+		firststepman = bill.map[m[0][0][0][1]][m[0][0][0][0]];
+		play.mans[firststepman].my == 1 ? bill.isOffensive = !0 : (bill.isOffensive = !1,showFloatTip("黑方先手"));
 		bill.replayBtnUpdate();
-		mode = 4;
+		mode = MODE_BILLREPLAY;
 		showBtns();
 		$("#sendBtn").hide();
 	}
@@ -86,15 +88,18 @@ onload = function() {
         dots: []
     },
     comm.mans = {},
-    $("#blackautoplayBtn").click(bill.bPlay),
-    $("#redautoplayBtn").click(bill.rPlay),
-    $("#soundBtn").click(bill.sound),
-	$("#reverseBtn").click(bill.reverse),	
-	$("#noteBtn").click(bill.note),	
-	$("#prevBtn").click(bill.replayPrev),
-    $("#nextBtn").click(bill.replayNext),
-	$("#sendBtn").click(bill.send),
-	$("#fullBtn").click(bill.fullBroad),
-	$("#clearBtn").click(bill.cleanBroad),				
-	$("#saveBtn").click(bill.save);			
+    $("#blackautoplayBtn").on('tap',bill.bPlay),
+    $("#redautoplayBtn").on('tap',bill.rPlay),
+    $("#soundBtn").on('tap',bill.sound),
+	$("#verticalreverseBtn").on('tap',bill.reverse),	
+	$("#noteBtn").on('tap',bill.note),	
+	$("#firstBtn").on('tap',bill.replayFirst),
+	$("#autoreplayBtn").on('tap',bill.autoreplay),
+	$("#prevBtn").on('tap',bill.replayPrev),
+    $("#nextBtn").on('tap',bill.replayNext),
+    $("#endBtn").on('tap',bill.replayEnd),
+	$("#sendBtn").on('tap',bill.send),
+	$("#fullBtn").on('tap',bill.fullBroad),
+	$("#clearBtn").on('tap',bill.cleanBroad),				
+	$("#saveBtn").on('tap',bill.save);			
 };

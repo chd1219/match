@@ -119,35 +119,44 @@ function addChess(e) {
     a.key = e,
     a
 }
-function intiBoard() {
-	var ua = navigator.userAgent;
-	if (/Android (\d+\.\d+)/.test(ua)){
-		var e = new lib.Board;
-		e.y = 100;
-		chessBottonLayer.addChild(e)
-		// 其他系统
-	} else {
-		var e = new lib.Board;
-		chessBottonLayer.addChild(e)
+function initBoard() {
+	board = new lib.Board;
+	if(mode == 5){
+		board.y = 100;
 	}
 	
+	chessBottonLayer.addChild(board)	
 }
+function resizeBoard() {
+	chessBottonLayer.removeChild(board);
+	board.y = 0;	
+	chessBottonLayer.addChild(board)	
+}
+
 function initDots() {
     for (var e = 0; 10 > e; e++) {
         for (var a = 0; 9 > a; a++) {
             var m = new res.Dot,
             o = comm.pointStartX + comm.spaceX * a + parseInt(a / 3),
             n = comm.pointStartY + comm.spaceY * e + parseInt(e / 3);
-            m.x = o + 12,
-            m.y = n + 11,
-            m.visible = !1,
-            chessTopLayer.addChild(m),
+            m.x = o + 12;
+			
+			//修改提示点的位置
+			
+			if(mode == 5){
+				m.y = n - 89;
+			}else{
+				m.y = n + 11;
+				}
+            
+            m.visible = !1;
+            chessTopLayer.addChild(m);
             Dots[a.toString() + e.toString()] = m
         }
         comm.Dots = Dots
     }
 }
-function intiPane() {
+function initPane() {
     comm.box1 = new res.Box,
     comm.box1.visible = !1,
     chessLayer.addChild(comm.box1),
@@ -263,14 +272,39 @@ function loadSound(e) {
     fileLoaded(e)
 }
 function resizeCanvas(){	
-	stageWidth =  window.screen.width;
-	stageHeight = window.screen.height-150;
+	
 	canvas = document.getElementById("chess");
-	//if (stageWidth/stageHeight > 0.6)
-		canvas.style.height = stageHeight + 'px';
-	//else
-	//	canvas.style.width = stageWidth + 'px';
-	//alert('stageWidth:'+stageWidth+', stageHeight: '+stageHeight);
+	stageWidth =  window.screen.width - 10;
+	stageHeight = 0;
+	if(mode == 5){
+		stageHeight = window.screen.width / 640 * 866;
+	}else{
+		stageHeight = window.screen.width / 640 * 706;
+	}
+	
+	
+	
+	if(stageHeight + 80 > window.screen.height){
+		//如果屏幕太矮
+		stageHeight = window.screen.height - 100;
+		if(mode == 5){
+			
+			stageWidth = stageHeight / 866 * 640;
+		}else{
+			stageWidth = stageHeight / 706 * 640;
+		}
+		
+	}
+	console.log('现在的canvas和屏幕的宽度之差为'+window.screen.height+' - '+stageHeight);
+	canvas.style.width = stageWidth + 'px';
+	canvas.style.height = stageHeight + 'px';
+	$('.wgo-board').css('width',window.screen.width+'px');
+	$('.wgo-board').css('height',stageHeight+'px');
+	
+	
+	
+	
+	
 }
 function initCanvas(e){
 	resizeCanvas();
@@ -320,7 +354,8 @@ function initCanvas(e){
 function stageClick(e) {
     mode == MODE_PLAY && play.clickCanvas(e),
     mode == MODE_REPLAY && comm.clickCanvas(e),
-	(mode == MODE_BILL && serverData.BillType != 1 && bill.BillType != 1) && bill.clickCanvas(e)
+	mode == MODE_BILL && bill.clickCanvas(e),
+	mode == MODE_BILLREPLAY && bill.clickCanvas(e)
 }
 function enterFrame() {
     var e = new Date,
@@ -438,7 +473,7 @@ fullMoves,
 moves = [],
 movesIndex = 0,
 movesTipsShow = !0,
-reverseMode = 0,
+isVerticalReverse = 0,
 movesInterval,
 voicemode = 1,
 autoset,
@@ -525,6 +560,7 @@ comm.showDots = function() {
     for (var e = 0; e < comm.dot.dots.length; e++) {
         var a = comm.dot.dots[e].join(""),
         m = comm.Dots[a];
+		console.log(m);
         m.visible = !0
     }
 },
@@ -534,10 +570,16 @@ comm.hideDots = function() {
 comm.init = function(e) {
     comm.width = canvas.width,
     comm.height = canvas.height,
-    comm.spaceX = 67,
-    comm.spaceY = 67,
-	comm.pointStartX = 31,
-    comm.pointStartY = 29+100
+    comm.spaceX = 69,
+    comm.spaceY = 69;
+	if(mode == 5 && createbroad == 1){
+		comm.pointStartX = 22;
+    	comm.pointStartY = 122;
+	}else{
+		comm.pointStartX = 22;
+   		comm.pointStartY = 22;
+	}
+	
 },
 comm.id2name = {
 	16 : "J", 17 : "S", 18 : "X", 19 : "M", 20 : "C", 21 : "P", 22 : "Z", 8 : "j", 9 : "s", 10 : "x", 11 : "m", 12 : "c", 13 : "p", 14 : "z"
@@ -600,9 +642,9 @@ comm.initChess = function(e, a) {
     fullMap = e.concat(),
     moves = fullMoves.concat(),
     play.init(3, e),
-    intiBoard(),
+    initBoard(),
     initDots(),
-    intiPane(),
+    initPane(),
     initLight(),
     showBtns();
 };
@@ -613,9 +655,9 @@ comm.initChessEx = function(e, a) {
     fullMap = e.concat(),
     moves = fullMoves.concat(),
 	bill.init(3, e, !0);
-    intiBoard(),
+    initBoard(),
     initDots(),
-    intiPane(),
+    initPane(),
     initLight(),
     showBtns()
 };
@@ -844,7 +886,7 @@ comm.send = function(e) {
 							})
 						 .on('click', '.btn_dialog_ok', function () {					
 							hideDiv('replaydialog');
-							location.href = href;								
+							window.parent.location.href = href;								
 						});			
 		},
 		error: function(response,status,xhr){
@@ -857,7 +899,7 @@ comm.arr2Clone = function(e) {
     return a
 },
 comm.arrReverse = function(e) {
-    for (var a = [], m = 0; m < e.length; m++) a[m] = e[e.length-1-m].reverse().slice();
+    for (var a = [], m = 0; m < e.length; m++) a[m] = e[e.length-1-m].slice().reverse();
     return a
 },
 comm.keys = {
@@ -983,7 +1025,7 @@ comm.bylaw.p = function(e, a, m, o) {
 },
 comm.bylaw.z = function(e, a, m, o) {
     var n = [];
-    return reverseMode == 0 ? (
+    return isVerticalReverse == 0 ? (
 	1 === o ? (a - 1 >= 0 && (!comm.mans[m[a - 1][e]] || comm.mans[m[a - 1][e]].my != o) && n.push([e, a - 1]), 
 	8 >= e + 1 && 4 >= a && (!comm.mans[m[a][e + 1]] || comm.mans[m[a][e + 1]].my != o) && n.push([e + 1, a]), 
 	e - 1 >= 0 && 4 >= a && (!comm.mans[m[a][e - 1]] || comm.mans[m[a][e - 1]].my != o) && n.push([e - 1, a])) : (

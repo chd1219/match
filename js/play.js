@@ -144,7 +144,7 @@ function hideTips(){
 };
 play.showThink = function() {
 	room_id = getUrlParam("roomid");
-	room_id ? ( play.my == -1 ? echoTips("红方思考中。。。") : echoTips("黑方思考中。。。") ) : ( movesIndex%2 == 0 ? ($("#AIThink").text("红方思考中。。。"),$("#AIThink").show()) : ($("#AIThink").text("黑方思考中。。。"),$("#AIThink").show()) );
+	room_id ? ( play.my == -1 ? echoTips("红方思考中。。。") : echoTips("黑方思考中。。。") ) : !1;
 },
 play.hideThink = function() {
     clearInterval(time);
@@ -180,12 +180,12 @@ play.onlinePlay = function(e) {
 play.bAIPlay = function() {/*黑*/
 	play.showThink();
 	waitServerPlay = !0;
-	sendPosition(play.getFen(reverseMode ? comm.arrReverse(play.map) : play.map, -1));
+	sendPosition(play.getFen(isVerticalReverse ? comm.arrReverse(play.map) : play.map, -1));
 },
 play.rAIPlay = function() {/*红*/
 	play.showThink();
 	waitServerPlay = !0;
-	sendPosition(play.getFen(reverseMode ? comm.arrReverse(play.map) : play.map, 1));
+	sendPosition(play.getFen(isVerticalReverse ? comm.arrReverse(play.map) : play.map, 1));
 },
 play.serverAIPlay = function() {		
     if (0 != play.isPlay) {		
@@ -193,7 +193,7 @@ play.serverAIPlay = function() {
        
         var e = play.aiPace;
         play.aiPace = void 0;
-		if(reverseMode){
+		if(isVerticalReverse){
 			e[0] = 8-e[0];
 			e[1] = 9-e[1];
 			e[2] = 8-e[2];
@@ -240,6 +240,8 @@ play.ParseMsg = function(d) {
 		
 		if(e[1].match("null") || e[1].match("none")){
 			play.my == 1 ? play.onGameEnd(-1) : play.onGameEnd(1);
+			bill.my = -bill.my;
+			play.my = -play.my;			
 			return;
 		}
 		var o = e[1].split(""); 
@@ -303,8 +305,9 @@ play.onGameEndLose = function() {
 play.onGameEnd = function(e, a) {
     play.isPlay = !1,
     comm.onGameEnd(e),
+    bill.onGameEnd(e),
     play.hideThink();
-    if(reverseMode){
+    if(isVerticalReverse){
         -1 === e ? play.showWin() : play.showLose()
     }
    else{

@@ -1,7 +1,19 @@
 var bill = bill || {};
 var boutside = -1.1;
-var routside = 10.6;
-var outsidescale = 1.62;
+var routside = 10.1;
+var outsidescale = 1.58;
+var first = !1,
+createbroad = !0,
+currentId = 0,
+id = 0,
+moves = [],
+chessnum = [],
+countPath = 0,
+shape = [],
+text = [],
+autoreplayset = 0;
+autoreplayspan = 3000;
+isOffensive = !0;
 bill.init = function(e, a, k) {
 	mode = MODE_BILL;	
     var a = a || comm.initMap;
@@ -19,7 +31,7 @@ bill.init = function(e, a, k) {
     bill.isAnimating = !1,
     bill.bylaw = comm.bylaw,
     bill.showPane = comm.showPane,
-    bill.isOffensive = !0,
+    bill.isOffensive = isOffensive,
     bill.depth = e,
     bill.isFoul = !1,
     bill.mans = {},
@@ -31,6 +43,15 @@ bill.init = function(e, a, k) {
     comm.moves4Server = comm.getMap4Server(bill.map),
 	k == !0 ? ( bill.isPlay = !0 ):($("#saveBtn").show(),bill.isPlay = !1)  ;
 },
+bill.offensive = function() {	
+	bill.cleanChess();
+	bill.isOffensive == !0 ? isOffensive = !1 : isOffensive = !0;
+	isVerticalReverse ? bill.init(3, comm.arrReverse(bill.cMap), !0) : bill.init(3, bill.cMap, !0);
+	movesIndex = 0;
+	moves.length = 0;
+	bill.paceEx.length = 0;
+	bill.replayBtnUpdate();
+}
 bill.create2 = function() {
 	$("#createBtn2").hide(),
 	$("#tipsInfo").hide(),
@@ -51,7 +72,7 @@ bill.create = function() {
 	bill.pace = [],
 	cleanChess();
 	bill.init(3,bill.map,!1);
-	$("#clearBtn").click()
+	bill.cleanBroad();
 },
 bill.onChessDrop = function() {
     function e() {
@@ -98,7 +119,9 @@ bill.send = function(e) {
 		return;
 	}		
 
-	var map = comm.getMap6Server(bill.cMap);
+	isVerticalReverse ? sendmap = comm.arrReverse(bill.cMap) : sendmap = bill.cMap;
+	
+	var map = comm.getMap6Server(sendmap);
 	var moves = bill.getMoves6ServerEx();
 	var notes = bill.getNotes2Server();
 	var _json = {"map": map, "moves":moves, "notes":notes, "filename":comm.filename, "BillType":1};
@@ -108,7 +131,7 @@ bill.send = function(e) {
 		dataType: "text",		
 		data: _json,
 		success: function(response,status,xhr) {
-			location.href = replayURL + "&file=" + comm.filename;
+			window.parent.location.href = replayURL + "&file=" + comm.filename;
 			console.log(_json);				
 		},
 		error: function(response,status,xhr){
@@ -162,11 +185,14 @@ bill.fullBroad = function(e) {
 	$("#fullBtn").hide();
 	$("#clearBtn").show();
 },
-bill.clickCanvas = function(e) {
+bill.clickCanvas = function(e) {	
     var a = bill.getClickMan(e),
     m = bill.getClickPoint(e),
     x = m.x,
     y = m.y;
+	
+	if (bill.isend == 1)  return;
+	
     a ?  bill.clickMan(a, x, y) : bill.clickPoint(x, y);
 	
 	if (bill.isPlay == !0){		
@@ -230,7 +256,11 @@ bill.clickManIn = function(e, a, m) {	//棋盘内->棋盘内
 			first ? (comm.soundplay("drop"), first = !1) : comm.soundplay("select"), comm.light.x = comm.spaceX * o.x + comm.pointStartX - 20, comm.light.y = comm.spaceY * o.y + comm.pointStartY - 24, comm.light.visible = !0)
 		}
     } 
-	else if (bill.isPlay ? o.my == bill.my : !0){
+	else if (bill.isPlay ? o.my == bill.my : !0){	
+	
+		if (b_autoset != 0 && o.my == -1)  return;
+		if (r_autoset != 0 && o.my == 1)  return;		
+	
 		if (bill.nowManKey == e) {
 			bill.cancleSelected();
 		}
@@ -297,6 +327,9 @@ bill.clickManOut = function(e, x, y) {
 			}
 			else {
 				bill.cancleSelected();
+				var o = comm.mans[e];
+				bill.nowManKey = e; 
+				first ? (comm.soundplay("drop"), first = !1) : comm.soundplay("select"), comm.light.x = comm.spaceX * o.x + comm.pointStartX - 20, comm.light.y = comm.spaceY * o.y + comm.pointStartY - 24, comm.light.visible = !0
 			}
 		}		
 		else {
@@ -343,7 +376,7 @@ bill.clickPointPre = function(e, a) {//摆棋模式
 	var m = bill.nowManKey;
 	o = comm.mans[m];	
 	//棋盘外->棋盘外
-	if ( (a<0 || a>9) && (o.y<0 || o.y>9) ) {
+	if ( (a<0 || a>9) && (o.y<0 || o.y>9) ) {		
 		return;
 	}		
 	//棋盘内->棋盘外
@@ -383,8 +416,8 @@ bill.clickPointPre = function(e, a) {//摆棋模式
 	//棋盘外->棋盘内
 	if (o.y < 0 || o.y > 9){
 		o.y < 0 ? (  col = 0 ) : ( col = 1 );
-		
-		delete bill.sMap[col][o.x/outsidescale];
+		row = parseInt(o.x/outsidescale);
+		delete bill.sMap[col][row];
 		//列表
 		var templist = [];
 		templist = bill.sMapList[m.slice(0, 1)];
@@ -400,9 +433,9 @@ bill.clickPointPre = function(e, a) {//摆棋模式
 		templist.length -= 1;
 		newchess = templist[0];
 		bill.createMan(newchess, o.y, o.x),
-		stage.removeChild(chessnum[col*6+o.x/outsidescale]),
-		templist.length ? bill.drawNum(col,o.x/outsidescale,templist.length) : !1;
-		bill.sMap[col][o.x/outsidescale] = newchess;
+		stage.removeChild(chessnum[col*6+row]),
+		templist.length ? bill.drawNum(col,row,templist.length) : !1;
+		bill.sMap[col][row] = newchess;
 	}
 	else {
 		delete bill.map[o.y][o.x];	
@@ -448,16 +481,6 @@ bill.checkbranch = function(e){
 	}
 	return !1;
 }
-var first = !1,
-createbroad = !1,
-currentId = 0,
-id = 0,
-moves = [],
-chessnum = [],
-countPath = 0,
-shape = [],
-text = [],
-autoset = 0;
 bill.indexOfPs = function(e, a) {
     for (var m = 0; m < e.length; m++) if (e[m][0] == a[0] && e[m][1] == a[1]) return ! 0;
     return ! 1
@@ -510,9 +533,16 @@ bill.cleanLine = function(){
 	}
 },
 bill.reverse = function() {
+	if (b_autoset != 0 || r_autoset != 0) 
+	{
+		showFloatTip("请取消电脑思考，再点击翻转");
+		var tog = document.getElementById("verticalreverseTog");
+		mui.trigger(tog,'toggle');
+		return;	
+	}	
 	if (bill.isAnimating) return ! 1;
 	if (waitServerPlay) return;
-	reverseMode ? (reverseMode = 0) : (reverseMode = 1);
+	isVerticalReverse ? (isVerticalReverse = 0) : (isVerticalReverse = 1);
 	bill.reverseMoves();
 	bill.map = comm.arrReverse(bill.map);
 	bill.cleanChess();
@@ -520,24 +550,22 @@ bill.reverse = function() {
 	play.map = bill.map;
 },
 bill.save = function() {
-	$("#saveBtn").hide();
+	
 	if(bill.checkJiang() == !1){
 		showFloatTip("开局不能将");
 		return;
 	}
+	bill.resizeCanvas();	
 	createbroad = !1;
+	comm.init();
 	bill.cMap = comm.arr2Clone(bill.map),
 	bill.cleanChess(),
 	bill.init(3,bill.map,!0);
 	bill.cleanChess2();
-	play.map = bill.map;
-	
-	$("#mode5").hide(),
-	$("#mode4").show(),
+	play.map = bill.map;	
 	movesIndex = 0,
 	bill.pace = [],
 	bill.replayBtnUpdate();
-	//bill.setting();
 },
 bill.note = function() {
 	popupDiv('notedialog');		
@@ -556,34 +584,55 @@ bill.note = function() {
 				}
 			});	
 },
+
+bill.showPlaymode = function(e){
+	$("#playmode").text(e);
+	$("#playmode").show();
+},
 bill.bPlay = function(){
-	b_autoset != 0 ? (clearInterval(b_autoset), $("#blackautoplayBtn").val("电脑执黑"),b_autoset = 0) : (
+	b_autoset != 0 ? (clearInterval(b_autoset), b_autoset = 0) : (
 	b_autoset = setInterval(function(){
 		if(waitServerPlay) return;
 		play.map  = bill.map;	
-		if(movesIndex%2 == 1){//黑
+		if((movesIndex%2 == 1 && bill.isOffensive) || (movesIndex%2 == 0 && !bill.isOffensive)){//黑
 			play.bAIPlay();		
 			play.my = -1;
 			bill.my = 1;
 		} 	
-	}, 2000), $("#blackautoplayBtn").val("取消执黑"));
+	}, 2000));
 },
-bill.rPlay = function(){
-	r_autoset != 0 ? ( clearInterval(r_autoset),$("#redautoplayBtn").val("电脑执红"),r_autoset = 0) : (
+bill.rPlay = function(){	
+	r_autoset != 0 ? ( clearInterval(r_autoset),r_autoset = 0) : (
 	r_autoset = setInterval(function (){
 		if(waitServerPlay) return;
 		play.map  = bill.map;	
-		if(movesIndex%2 == 0) {//红
+		if((movesIndex%2 == 0 && bill.isOffensive) || (movesIndex%2 == 1 && !bill.isOffensive)) {//红
 			play.rAIPlay();		
 			play.my = 1;
 			bill.my = -1;
 		}
-	}, 2000),$("#redautoplayBtn").val("取消执红"))
+	}, 2000))
 },
 bill.sound = function(){
-	voicemode==1 ? (voicemode = 0, $("#soundBtn").val("音效开")) : (voicemode = 1,$("#soundBtn").val("音效关"))
+	voicemode==1 ? (voicemode = 0, $("#soundBtn").val("音效关")) : (voicemode = 1,$("#soundBtn").val("音效开"))
+},
+bill.autoreplay = function() {
+	if (b_autoset != 0 || r_autoset != 0) 
+	{
+		showFloatTip("请取消电脑思考，再点击自动播放");
+		return;	
+	}	
+	movesIndex >= moves.length ? showFloatTip("播放结束") : ( autoreplayset != 0 ? (showFloatTip("播放结束"),clearInterval(autoreplayset), autoreplayset = 0) : (showFloatTip("开始自动播放"),autoreplayset = setInterval(bill.replayNext,autoreplayspan)) );
 },
 bill.replayNext = function() {
+	setTimeout(bill.replayNextset,200);
+},
+bill.replayNextset = function() {
+	if (b_autoset != 0 || r_autoset != 0) 
+	{
+		showFloatTip("请取消电脑思考，再点击下一步");
+		return;	
+	}		
 	countPath = 0;
 	var nextpace = [];
 	nextid = currentId;
@@ -610,17 +659,21 @@ bill.replayNext = function() {
 			movesIndex++;
 			moves = bill.getMoves4Server(1);
 			bill.cleanChess();
-			reverseMode ? bill.init(3, comm.arrReverse(bill.cMap), !0) : bill.init(3, bill.cMap, !0);
+			isVerticalReverse ? bill.init(3, comm.arrReverse(bill.cMap), !0) : bill.init(3, bill.cMap, !0);
 			if ( movesIndex > 0 ) {					
 				for (var e = 0; movesIndex-1 > e; e++) 
 					bill.stepPlay(moves[e].src, moves[e].dst, !0);
 				bill.stepPlay(moves[e].src, moves[e].dst);
 			}
 			bill.replayBtnUpdate(),
-			bill.my = -bill.my;
 			bill.cleanLine();
 			return;
 		};
+		//自动播放控制
+		if  ( autoreplayset != 0 ) {
+			clearInterval(autoreplayset);
+		} 
+		
 		for (var j=0;j< countPath;j++){
 			BranchPath = "BranchPath_"+j;
 			$("#nextstepdialog").prepend('<input type="button" id='+BranchPath+' class="chessbaseBtn chess'+j+'Btn" value=""/>');
@@ -638,9 +691,12 @@ bill.replayNext = function() {
 						bill.stepPlay(moves[e].src, moves[e].dst, !0);
 					bill.stepPlay(moves[e].src, moves[e].dst);
 				}
-				bill.replayBtnUpdate(),
-				bill.my = -bill.my;
+				bill.replayBtnUpdate();
 				$("#nextstepdialog").trigger("myclick");	
+				//自动播放控制
+				if  ( autoreplayset != 0 ) {
+				 autoreplayset = setInterval(bill.replayNext,2000);
+				} 
 			});
 		}
 		popupDiv('nextstepdialog');	
@@ -653,19 +709,66 @@ bill.replayNext = function() {
 				});		
 	}
 },
+
 bill.replayPrev = function() {
+	if (b_autoset != 0 || r_autoset != 0) 
+	{
+		showFloatTip("请取消电脑思考，再点击上一步");
+		return;	
+	}		
 	bill.cleanLine();
-	bill.BillType = !1,
+	bill.isend = !1,
+	play.isPlay = !0,
 	moves = bill.getMoves4Server(-1);
 	bill.cleanChess();
-	reverseMode ? bill.init(3, comm.arrReverse(bill.cMap), !0) : bill.init(3, bill.cMap, !0);
+	isVerticalReverse ? bill.init(3, comm.arrReverse(bill.cMap), !0) : bill.init(3, bill.cMap, !0);
     if ( movesIndex > 0 ) {
         movesIndex--;
         for (var e = 0; movesIndex > e; e++) 
 			bill.stepPlay(moves[e].src, moves[e].dst, !0);
     }
-    bill.replayBtnUpdate(),
-	bill.my = -bill.my;
+    bill.replayBtnUpdate();
+	
+},
+bill.replayFirst = function() {
+	if (b_autoset != 0 || r_autoset != 0) 
+	{
+		showFloatTip("请取消电脑思考，再点击开局");
+		return;	
+	}		
+	bill.cleanLine();
+	bill.isend = !1,
+	play.isPlay = !0,
+	moves = bill.getMoves4Server(-1);
+	bill.cleanChess();
+	isVerticalReverse ? bill.init(3, comm.arrReverse(bill.cMap), !0) : bill.init(3, bill.cMap, !0);
+
+	currentId = 0;
+    movesIndex = 0;
+	for (var e = 0; movesIndex > e; e++) 
+		bill.stepPlay(moves[e].src, moves[e].dst, !0);
+
+    bill.replayBtnUpdate();
+},
+bill.replayEnd = function() {
+	if (b_autoset != 0 || r_autoset != 0) 
+	{
+		showFloatTip("请取消电脑思考，再点击终局");
+		return;	
+	}		
+	bill.cleanLine();
+	bill.isend = !1,
+	play.isPlay = !0,
+	moves = bill.getMoves4Server(-1);
+	bill.cleanChess();
+	isVerticalReverse ? bill.init(3, comm.arrReverse(bill.cMap), !0) : bill.init(3, bill.cMap, !0);
+
+    movesIndex = moves.length;
+	currentId = bill.paceEx[movesIndex-1][0][1];
+    for (var e = 0; movesIndex > e; e++) 
+		bill.stepPlay(moves[e].src, moves[e].dst, !0);
+
+    bill.replayBtnUpdate();
 },
 bill.replayBtnUpdate = function() {
 	moves = moves || [];
@@ -674,8 +777,11 @@ bill.replayBtnUpdate = function() {
 		if(moves[i]) 
 			count++;
 	}
-    0 >= movesIndex ? setEnable("prevBtn2", !1) : setEnable("prevBtn2", !0),
-    movesIndex >= count ? setEnable("nextBtn2", !1) : setEnable("nextBtn2", !0),
+    0 >= movesIndex ? setEnable("firstBtn", !1) : setEnable("firstBtn", !0),
+    0 >= movesIndex ? setEnable("prevBtn", !1) : setEnable("prevBtn", !0),
+    movesIndex >= count ? setEnable("nextBtn", !1) : setEnable("nextBtn", !0),
+    movesIndex >= count ? setEnable("endBtn", !1) : setEnable("endBtn", !0);
+    if (movesIndex >= count &&  autoreplayset !=0 ) clearInterval(autoreplayset);
     $("#tipsInfo").text("第" + movesIndex + "步 / 总" + count + "步"),
     $("#tipsInfo").show();
 	if(bill.notes[currentId]){
@@ -684,6 +790,8 @@ bill.replayBtnUpdate = function() {
 	}else{
 		$("#noteInfo").hide()
 	}		
+	bill.isOffensive ? (movesIndex%2 == 0 ? (bill.my = 1,$("#AIThink").text("红方思考中。。。"),$("#AIThink").show()) : (bill.my = -1,$("#AIThink").text("黑方思考中。。。"),$("#AIThink").show())) : (movesIndex%2 == 0 ? (bill.my = -1,$("#AIThink").text("黑方思考中。。。"),$("#AIThink").show()) : (bill.my = 1,$("#AIThink").text("红方思考中。。。"),$("#AIThink").show()));
+	play.map = bill.map;
 },
 bill.replayTipHide = function() {
     function e() {
@@ -701,7 +809,7 @@ bill.getMoves4Server = function(t) {
 	nextid = currentId;
 	preid = currentId;	
 	
-	//向后延伸
+	/*向后延伸*/
     for (a = movesIndex; a < bill.paceEx.length; a++) {		
         var nextpaceEx = bill.paceEx[a];		
 		for (j = 0;nextpaceEx && j < nextpaceEx.length; j++){
@@ -839,6 +947,7 @@ bill.AIclickMan = function(e, a, m, o) {
     comm.mans[bill.nowManKey].x = a,
     comm.mans[bill.nowManKey].y = m,
     o ? comm.mans[bill.nowManKey].move() : comm.mans[bill.nowManKey].animate(),
+	bill.my = -bill.my,
 	"j0" == e && bill.onGameEnd(-1),
 	"J0" == e && bill.onGameEnd(1),
     bill.nowManKey = !1
@@ -882,7 +991,7 @@ bill.cleanChess2 = function() {
 		stage.removeChild(chessnum[a])
 	}
 },
-bill.BillType = 0,
+bill.isend = 0,
 bill.notes = [],
 bill.emptyMap = [[, , , , "J0", , , , ""], [, , , , , , , ,"" ], [, , , , , , , , ""], [, , , , , , , , ""], [, , , , , , , , ""], [, , , , , , , ,"" ], [, , , , , , , ,"" ], [, , , , , , , ,"" ], [, , , , , , , ,"" ], [, , , ,"j0", , , , ""]],
 bill.sMapFull = [["C0", "M0", "P0", "X0", "S0","Z0","" ], ["c0", "m0", "p0", "x0", "s0","z0",""]],
@@ -971,7 +1080,7 @@ bill.bylawz = function(e, a, m, o) {
 bill.checkMans = function(e,a,m){
 	//检查将、士、象、兵、卒的位置是否合法	
 	e = e.slice(0, 1);
-	(reverseMode == 0) ? ( result = {"J":(a>-1 & 3>a & m>2 & 6>m), "X":( ((a == 0 || a == 4) & (m == 2 || m == 6)) || (a == 2 & (m == 0 || m ==4 || m == 8)) ), "S":( ((a == 0 || a == 2) & (m == 3 || m == 5)) || (a == 1 & (m == 4)) ), "Z":( ((a == 3 || a == 4) & (m == 0 || m == 2 || m == 4 || m == 6 || m == 8)) || (a>4 & 10>a) ), "j":(a>6 & 10>a & m>2 & 6>m), "x":( ((a == 5 || a == 9) & (m == 2 || m == 6)) || (a == 7 & (m == 0 || m ==4 || m == 8)) ), "s":( ((a == 7 || a == 9) & (m == 3 || m == 5)) || (a == 8 & (m == 4)) ), "z":( ((a == 5 || a == 6) & (m == 0 || m == 2 || m == 4 || m == 6 || m == 8)) || (a>-1 & 5>a) ), "C":!0, "M":!0, "P":!0, "c":!0, "m":!0, "p":!0 }[e] || !1):( result = {"j":(a>-1 & 3>a & m>2 & 6>m), "x":( ((a == 0 || a == 4) & (m == 2 || m == 6)) || (a == 2 & (m == 0 || m ==4 || m == 8)) ) ,  "s":( ((a == 0 || a == 2) & (m == 3 || m == 5)) || (a == 1 & (m == 4)) ), "z":( ((a == 3 || a == 4) & (m == 0 || m == 2 || m == 4 || m == 6 || m == 8)) || (a>4 & 10>a) ), "J":(a>6 & 10>a & m>2 & 6>m), "X":( ((a == 5 || a == 9) & (m == 2 || m == 6)) || (a == 7 & (m == 0 || m ==4 || m == 8)) ), "S":( ((a == 7 || a == 9) & (m == 3 || m == 5)) || (a == 8 & (m == 4)) ), "Z":( ((a == 5 || a == 6) & (m == 0 || m == 2 || m == 4 || m == 6 || m == 8)) || (a>-1 & 5>a) ), "C":!0, "M":!0, "P":!0, "c":!0, "m":!0, "p":!0 }[e] || !1)
+	(isVerticalReverse == 0) ? ( result = {"J":(a>-1 & 3>a & m>2 & 6>m), "X":( ((a == 0 || a == 4) & (m == 2 || m == 6)) || (a == 2 & (m == 0 || m ==4 || m == 8)) ), "S":( ((a == 0 || a == 2) & (m == 3 || m == 5)) || (a == 1 & (m == 4)) ), "Z":( ((a == 3 || a == 4) & (m == 0 || m == 2 || m == 4 || m == 6 || m == 8)) || (a>4 & 10>a) ), "j":(a>6 & 10>a & m>2 & 6>m), "x":( ((a == 5 || a == 9) & (m == 2 || m == 6)) || (a == 7 & (m == 0 || m ==4 || m == 8)) ), "s":( ((a == 7 || a == 9) & (m == 3 || m == 5)) || (a == 8 & (m == 4)) ), "z":( ((a == 5 || a == 6) & (m == 0 || m == 2 || m == 4 || m == 6 || m == 8)) || (a>-1 & 5>a) ), "C":!0, "M":!0, "P":!0, "c":!0, "m":!0, "p":!0 }[e] || !1):( result = {"j":(a>-1 & 3>a & m>2 & 6>m), "x":( ((a == 0 || a == 4) & (m == 2 || m == 6)) || (a == 2 & (m == 0 || m ==4 || m == 8)) ) ,  "s":( ((a == 0 || a == 2) & (m == 3 || m == 5)) || (a == 1 & (m == 4)) ), "z":( ((a == 3 || a == 4) & (m == 0 || m == 2 || m == 4 || m == 6 || m == 8)) || (a>4 & 10>a) ), "J":(a>6 & 10>a & m>2 & 6>m), "X":( ((a == 5 || a == 9) & (m == 2 || m == 6)) || (a == 7 & (m == 0 || m ==4 || m == 8)) ), "S":( ((a == 7 || a == 9) & (m == 3 || m == 5)) || (a == 8 & (m == 4)) ), "Z":( ((a == 5 || a == 6) & (m == 0 || m == 2 || m == 4 || m == 6 || m == 8)) || (a>-1 & 5>a) ), "C":!0, "M":!0, "P":!0, "c":!0, "m":!0, "p":!0 }[e] || !1)
 
 	return result;	
 },
@@ -979,7 +1088,7 @@ bill.checkManDots = function(e){
 	comm.hideDots();
 	e = e.slice(0, 1);
 	//显示可走的点
-	reverseMode == 0 ? (comm.dot.dots = {"J":bill.bylawJ(),"S":bill.bylawS(),"X":bill.bylawX(),"Z":bill.bylawZ(),"j":bill.bylawj(),"s":bill.bylaws(),"x":bill.bylawx(),"z":bill.bylawz()}[e] || []) : (comm.dot.dots = {"J":bill.bylawj(),"S":bill.bylaws(),"X":bill.bylawx(),"Z":bill.bylawz(),"j":bill.bylawJ(),"s":bill.bylawS(),"x":bill.bylawX(),"z":bill.bylawZ()}[e] || [])
+	isVerticalReverse == 0 ? (comm.dot.dots = {"J":bill.bylawJ(),"S":bill.bylawS(),"X":bill.bylawX(),"Z":bill.bylawZ(),"j":bill.bylawj(),"s":bill.bylaws(),"x":bill.bylawx(),"z":bill.bylawz()}[e] || []) : (comm.dot.dots = {"J":bill.bylawj(),"S":bill.bylaws(),"X":bill.bylawx(),"Z":bill.bylawz(),"j":bill.bylawJ(),"s":bill.bylawS(),"x":bill.bylawX(),"z":bill.bylawZ()}[e] || [])
 	
 	comm.showDots();
 },
@@ -1003,8 +1112,28 @@ bill.checkJiang = function(){
     }
 	return !0;
 },
+
+bill.resizeCanvas = function (){
+		
+	stageWidth =  window.screen.width - 10;
+
+	stageHeight = window.screen.width / 640 * 706;
+	
+	canvas = document.getElementById("chess");
+	canvas.style.width = stageWidth + 'px';
+	
+	$('.wgo-board').css('width',stageWidth+'px');
+	$('.wgo-board').css('height',stageHeight+'px');
+	$(".mode5").hide();
+	$(".mode4").show();
+	$(document).attr("title","开始拆解");
+	$(".mui-title").html("开始拆解");
+	resizeBoard();
+}
 bill.onGameEnd = function(e, a) {
-	clearInterval(autoset);
-    bill.BillType = 1,
-    1 === e ? (console.log("恭喜你，你赢了！"), play.showWin()) : (console.log("很遗憾，你输了！"), a ? play.showLose() : play.addCallOnDrop(play.showLose))
+	clearInterval(b_autoset),b_autoset = 0;
+	clearInterval(r_autoset),r_autoset = 0;
+    bill.isend = 1;   
+	/*锁定，等待1s后解锁*/
+	setTimeout((function(){waitServerPlay = !1;}),1000);
 }

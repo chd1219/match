@@ -1,6 +1,6 @@
 ﻿body{padding: 0px;margin: 0px;background-image: url("../assets/images/chess_bg.jpg");background-color: #6A4C30;}
-#chessBox {margin: auto ;width:100%;position: absolute; bottom: 0%; text-align: center;}
-#chess {background-color:#FFFFFFFF;margin: auto;position: absolute;top: 0; left: 0; bottom: 0; right: 0;}
+#chessBox {display:table;bottom:0;width:100%;height:50px;padding:0;position:fixed;text-align:center;table-layout:fixed;border-top:0;border-bottom:0;-webkit-touch-call}
+#chess {background-color:#FFFFFFFF;margin:0 auto;position: absolute;top: 0; left: 0; bottom: 0; right: 0;}
 #tipsInfo{margin: auto ;width:100%;position: absolute; top: 1%; text-align: center;color: #BFA28A;display: none;font-size: inherit;}
 #noteInfo{margin: auto ;width:100%;position: absolute; top: 5%; text-align: center;color: #BFA28A;display: none;font-size: inherit;word-break;break-all;word-wrap;break-word;}
 #playmode{margin: auto ;width:100%;text-align: center;color: #BFA28A;font-size: inherit;z-index: 555;top: 5%;position:absolute;display: none;}
