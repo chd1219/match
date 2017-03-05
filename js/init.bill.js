@@ -2,13 +2,11 @@ var ws;
 function initWebsocket(){
 	var wsImpl = window.WebSocket || window.MozWebSocket;
 	// create a new websocket and connect
-	//window.ws = new wsImpl('ws://121.43.37.233:8183/');
 	window.ws = new ReconnectingWebSocket('ws://121.43.37.233:8182/');
 	// when data is comming from the server, this metod is called
 	ws.onmessage = function (evt) {
 		heartCheck.reset();
 		play.ParseMsg(evt.data);	
-		console.log(evt.data);
 	};
 	// when the connection is established, this method is called
 	ws.onopen = function () {
@@ -50,6 +48,7 @@ onload = function() {
 	$("#prevBtn").on('tap',bill.replayPrev),
     $("#nextBtn").on('tap',bill.replayNext),
     $("#endBtn").on('tap',bill.replayEnd),
+	$("#regretBtn").on('tap',bill.regret),
 	$("#sendBtn").on('tap',bill.send),
 	$("#fullBtn").on('tap',bill.fullBroad),
 	$("#clearBtn").on('tap',bill.cleanBroad),				

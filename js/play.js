@@ -8,6 +8,7 @@ play.init = function(e, a) {
     play.map = comm.arr2Clone(a),
     play.nowManKey = !1,
     play.pace = [],
+	play.aiPace = [],
     play.isPlay = !0,
     play.isAnimating = !1,
     play.bylaw = comm.bylaw,
@@ -90,7 +91,7 @@ play.clickMan = function(e, a, m) {
             comm.light.visible = !1,			
 			play.AIPlay(n + a + m),
             "j0" == e && play.onGameEnd(-1),
-            "J0" == e && play.onGameEnd(1);						
+            "J0" == e && play.onGameEnd(1);	
         }
     } else {
 		play.my === o.my && (
@@ -128,7 +129,7 @@ play.clickPoint = function(e, a) {
         comm.dot.dots = [],
         comm.hideDots(),
 		play.AIPlay(n + e + a),
-        comm.light.visible = !1;		
+        comm.light.visible = !1;
     }
 };
 var time;
@@ -174,24 +175,26 @@ play.AIPlay = function(e) {
 play.onlinePlay = function(e) {
 	play.showThink();
 	waitServerPlay = !0;
-	sendPosition("move "+e);
+	sendMessage("move "+e);
 	console.log(e);
 },
-play.bAIPlay = function() {/*黑*/
-	play.showThink();
+play.bAIPlay = function() {
+	/*黑*/
 	waitServerPlay = !0;
-	sendPosition(play.getFen(isVerticalReverse ? comm.arrReverse(play.map) : play.map, -1));
+	sendMessage(play.getFen(isVerticalReverse ? comm.arrReverse(play.map) : play.map, -1));
+	bill.replayBtnUpdate();
 },
-play.rAIPlay = function() {/*红*/
-	play.showThink();
+play.rAIPlay = function() {
+	/*红*/
 	waitServerPlay = !0;
-	sendPosition(play.getFen(isVerticalReverse ? comm.arrReverse(play.map) : play.map, 1));
+	sendMessage(play.getFen(isVerticalReverse ? comm.arrReverse(play.map) : play.map, 1));
+	bill.replayBtnUpdate();
 },
-play.serverAIPlay = function() {		
+play.serverAIPlay = function(e) {		
     if (0 != play.isPlay) {		
-        if (!play.aiPace) return void(waitServerPlay = !0);
-       
-        var e = play.aiPace;
+        e = e || play.aiPace;
+        if (!e) return void(waitServerPlay = !0);
+		
         play.aiPace = void 0;
 		if(isVerticalReverse){
 			e[0] = 8-e[0];
@@ -202,25 +205,25 @@ play.serverAIPlay = function() {
 
         if (mode == 1) play.pace.push(e.join(""));
 		movesIndex++; 
-		if(r_autoset != 0 || b_autoset != 0){			
-			bill.branch(e.join(""));
-			bill.replayBtnUpdate();	
-		}
+		bill.branch(e.join(""));
 		
         var a = play.map[e[1]][e[0]];
         play.nowManKey = a;
         var a = play.map[e[3]][e[2]];
 
         a ? setTimeout(play.AIclickMan, 1000, a, e[2], e[3]) : setTimeout(play.AIclickPoint, 1000, e[2], e[3]);
+		bill.my = -bill.my;
+		bill.map = play.map;
+		bill.replayBtnUpdate();
 		/*锁定，等待1s后解锁*/
 		setTimeout((function(){waitServerPlay = !1;}),1000);
-		if(playmode == 1) setTimeout((function(){checkIsFinalKill();}),1800);
+		//if(playmode == 1) setTimeout((function(){checkIsFinalKill();}),1800);
 		//if(playmode == 4) checkIsFinalKill();
+		
     }
 },
 play.clientPlay = function() {
     if (0 != play.isPlay) {
-		//checkIsFinalKill();
         var e = AI.init();
         if (!e) {
 			if(play.my == 1)		return void play.onGameEnd(-1);
@@ -232,6 +235,42 @@ play.clientPlay = function() {
         var a = play.map[e[3]][e[2]];
         a ? setTimeout(play.AIclickMan, 100, a, e[2], e[3]) : setTimeout(play.AIclickPoint, 100, e[2], e[3])
     }
+},
+play.transformat = function(o){
+	/*坐标变换(a-i)->(0-8),(0-9)->(9-0)*/
+	var a = [];
+	for(var i=0;i<4;i++){
+		a[i] = {"a":"0","b":"1","c":"2","d":"3","e":"4","f":"5","g":"6","h":"7","i":"8","0":"9","1":"8","2":"7","3":"6","4":"5","5":"4","6":"3","7":"2","8":"1","9":"0"}[o[i]] || "";			                      
+	}
+	return a;
+}
+var chessdblist = [];
+var computelist = [];
+
+play.onmdownchessdblist = function(e) {	
+	cleanChessdbDetail();
+	waitServerPlay = !0;
+	bill.nowManKey = !1,
+	comm.hidePane(),
+	comm.dot.dots = [],
+	comm.hideDots(),
+	comm.light.visible = !1;
+	var man = comm.mans[play.map[chessdblist[e][1]][chessdblist[e][0]]];
+	if (man.my == bill.my)
+		play.serverAIPlay(chessdblist[e]);
+	
+},
+play.onmdowncomputelist = function(e) {	
+	cleanComputerDetail();
+	waitServerPlay = !0;
+	bill.nowManKey = !1,
+	comm.hidePane(),
+	comm.dot.dots = [],
+	comm.hideDots(),
+	comm.light.visible = !1;
+	var man = comm.mans[play.map[computelist[e][1]][computelist[e][0]]];
+	if (man.my == bill.my)
+	play.serverAIPlay(computelist[e]);
 },
 play.ParseMsg = function(d) {
 
@@ -245,16 +284,80 @@ play.ParseMsg = function(d) {
 			return;
 		}
 		var o = e[1].split(""); 
-		/*坐标变换(a-i)->(0-8),(0-9)->(9-0)*/
-		for(var i=0;i<4;i++){
-			o[i] = {"a":"0","b":"1","c":"2","d":"3","e":"4","f":"5","g":"6","h":"7","i":"8","0":"9","1":"8","2":"7","3":"6","4":"5","5":"4","6":"3","7":"2","8":"1","9":"0"}[o[i]] || "";			                      
+		var a = [];
+		a = play.transformat(o);			
+		play.aiPace = a;
+		if(playmode == "4") setTimeout((function(){play.serverAIPlay();}),1000);
+		else setTimeout((function(){play.serverAIPlay();}),1000);
+	}	
+	else if(d.match("Queryall")) {
+		var e = (d.substr(8,d.length-8)).split("|");	
+		cleanChessdbDetail();		
+		if (e[0].match("stalemate") || e[0].match("checkmate")) {
+			showFloatTip("绝杀！");
+			return;
+		}				
+		if (e[0].match("unknown") || e[0].match("invalid board")){
+			return;			
 		}
-		o.length = 4;
-		play.aiPace = o;	
-		if(playmode == "4") setTimeout((function(){play.serverAIPlay();}),100);
-		else play.serverAIPlay();
+		var tmpStr = new String();	
+		chessdblist = [];
+		for (i=0;i<e.length && i<10;i++) {	
+			var tempmap = comm.arr2Clone(play.map);
+			var o = e[i].split(",");
+			a = o[0].split("");
+			n = play.transformat(a);	
+			chessdblist.push(n);
+			p = comm.createMove(tempmap,n[0],n[1],n[2],n[3]);
+			tmpStr += "<tr style=\"height:40px;\"><td>"+ p +"</td><td>"+ o[2] +"</td><td>"+ o[1] +"</td><td><input type=\"Button\" onclick='play.onmdownchessdblist(\""+i+"\")' value=\"立即出招\"></td></tr>";
+		}	
+		document.getElementById("chessdbDetailTbody").innerHTML = tmpStr;
 	}
 	else {
+		var e = d.split(" "); 
+		if (e.length > 18) {
+			var depth = e[2]/32,
+			seldepth = e[4],
+			multipv = e[6], 
+			score = -bill.my*e[8],
+			nodes = e[10],
+			nps = e[12],
+			tbhits = e[14],
+			time = e[16]/1000;
+			var tempmap = comm.arr2Clone(play.map);
+			if (e[2] == 14) {
+				computelist = [];
+				cleanComputerDetail();
+			}
+			
+			if (e[2] > 13) {
+				var pv = [], a=[];
+				
+				var tmpStr = new String();
+				var setting = new String();
+				for (i=18;i<e.length && i<20;i++){
+					a = e[i].split("");
+					o = play.transformat(a);	
+					if (i==18) computelist.push(o);
+					pv[i-18] = comm.createMove(tempmap,o[0],o[1],o[2],o[3]);
+					tmpStr = tmpStr + pv[i-18] + " ";
+				}	
+				if ( b_autoset == 0 && r_autoset == 0 ) {
+					setting = "<td><input type=\"Button\" onclick='play.onmdowncomputelist(\""+(computelist.length-1)+"\")' value=\"立即出招\"></td>";
+				}
+				else if ( b_autoset != 0 && r_autoset == 0 ) {
+					setting = "<td> </td>";
+				}
+				else if ( b_autoset == 0 && r_autoset != 0 ) {
+					setting = "<td> </td>";
+				}
+				
+				tmpStr = "<tr><td>"+ depth.toFixed(2)+"</td><td>"+score+"</td><td>"+tmpStr+"</td>"+setting+"</tr>";
+				document.getElementById("computerDetailTbody").innerHTML = tmpStr + document.getElementById("computerDetailTbody").innerHTML;
+				
+			}		
+		}
+		//console.log(d);
 		play.aiPace = null;	
 	}		 
 },
@@ -322,11 +425,10 @@ play.showLose = function() {
     comm.soundplay("gamelose"),
 	showFloatTip("黑方胜！");
 };
-play.getFen = function(e,a){
-	var result = "position fen ";
+play.getBoard = function (e,a){
 	var map = "";
-	var arr = [];
 	var coutZero = 0;
+	var board = "";
 	for(var i=0;i<10;i++){
 		coutZero = 0;
 		for(var j=0;j<9;j++){
@@ -337,25 +439,36 @@ play.getFen = function(e,a){
 				continue;
 			}			
 			if(coutZero > 0){
-				result += ""+coutZero;
+				board += ""+coutZero;
 				coutZero = 0;
 			}
 			/*将棋盘数组转化成FEN格式*/
-			var board={"J0":"k","X0":"b","X1":"b","S0":"a","S1":"a","Z0":"p","Z1":"p","Z2":"p","Z3":"p","Z4":"p","C0":"r","C1":"r","M0":"n","M1":"n","P0":"c","P1":"c","j0":"K","x0":"B","x1":"B","s0":"A","s1":"A","z0":"P","z1":"P","z2":"P","z3":"P","z4":"P","c0":"R","c1":"R","m0":"N","m1":"N","p0":"C","p1":"C"}[map] || ""; 
+			var boardkey={"J0":"k","X0":"b","X1":"b","S0":"a","S1":"a","Z0":"p","Z1":"p","Z2":"p","Z3":"p","Z4":"p","C0":"r","C1":"r","M0":"n","M1":"n","P0":"c","P1":"c","j0":"K","x0":"B","x1":"B","s0":"A","s1":"A","z0":"P","z1":"P","z2":"P","z3":"P","z4":"P","c0":"R","c1":"R","m0":"N","m1":"N","p0":"C","p1":"C"}[map] || ""; 
 			
-			result += board;
+			board += boardkey;
 		}
-		if(i < (e.length-1)){
-			if(coutZero > 0){
-				result += ""+coutZero;
-				coutZero = 0;
-			}
-			result += "/";
+		if(coutZero > 0){
+			board += ""+coutZero;
+			coutZero = 0;
+		}
+		if(i < (e.length-1)){			
+			board += "/";
 		}		
 	}
-	a == -1 ? (result += " b - - 0 1") : (result += " w - - 0 1");
-	console.log(result);
-	
+	a == -1 ? (board += " b") : (board += " w");
+	return board;
+}
+play.getFen = function(e,a){
+	var result = "position fen ";
+	var board = play.getBoard(e,a);
+	result += board + " - - 0 1";
+	//console.log(result);
 	if (result.indexOf("k") != -1 && result.indexOf("K") != -1) return result;    
 	return "";
+}
+play.queryall = function(e,a){
+	var result = "queryall:";
+	var board = play.getBoard(e,a);
+	result += board;
+	return result;    
 }

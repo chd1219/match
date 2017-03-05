@@ -61,7 +61,7 @@ function initWebsocket(){
 	var wsImpl = window.WebSocket || window.MozWebSocket;
 	// create a new websocket and connect
 	//window.ws = new wsImpl('ws://121.43.37.233:8183/');
-	window.ws = new ReconnectingWebSocket('ws://121.43.37.233:8183/');
+	window.ws = new ReconnectingWebSocket('ws://118.190.46.210:8183/');
 	if (ws.readyState == 3) {
 		alert("连接服务器失败");
 	}
@@ -97,12 +97,13 @@ var heartCheck = {
         }, this.timeout)
     }
 }
-function sendPosition(e){
+function sendMessage(e){
 	if(!ws) return;
 	ws.send(e);
 }
 function addChess(e) {
-    e || (e = "c");
+	var scale = 1.15;
+    e || (e = "c");	
     var a = new createjs.Container,
     m = LABEL[e],
     o = new m,
@@ -113,6 +114,10 @@ function addChess(e) {
     o.framerate = 24,
     n.stop(),
     o.stop(),
+	n.scaleX = scale,
+	n.scaleY = scale,
+	o.scaleX = scale,
+	o.scaleY = scale,	
     a.addChild(n),
     a.addChild(o),
     chessLayer.addChild(a),
@@ -128,9 +133,7 @@ function initBoard() {
 	chessBottonLayer.addChild(board)	
 }
 function resizeBoard() {
-	chessBottonLayer.removeChild(board);
 	board.y = 0;	
-	chessBottonLayer.addChild(board)	
 }
 
 function initDots() {
@@ -192,8 +195,15 @@ function replayMovesStep(e) {
 function moreBtn() {
     window.location = "index.html"
 }
+function cleanComputerDetail() {
+	if (mode == 5)
+    document.getElementById("computerDetailTbody").innerHTML = "";
+}
+function cleanChessdbDetail() {
+	if (mode == 5)
+    document.getElementById("chessdbDetailTbody").innerHTML = "";
+}
 function cleanChess() {
-    console.log(comm.chessLayer.numChildren);
     for (var e = 0; e < play.map.length; e++) for (var a = 0; a < play.map[e].length; a++) {
         var m = play.map[e][a];
         removeChess(m);
@@ -271,40 +281,41 @@ function requestServerStart(e) {
 function loadSound(e) {
     fileLoaded(e)
 }
-function resizeCanvas(){	
-	
+function resizeCanvas(){
 	canvas = document.getElementById("chess");
-	stageWidth =  window.screen.width - 10;
+	stageWidth = window.screen.width;
 	stageHeight = 0;
+	canvasWidth =  window.screen.width - 10;
+	canvasHeight = canvasWidth / 640 * 866;
+
 	if(mode == 5){
-		stageHeight = window.screen.width / 640 * 866;
+		stageHeight = (window.screen.width - 10)/ 640 * 706 ;
 	}else{
-		stageHeight = window.screen.width / 640 * 706;
+		stageHeight = window.screen.width / 640 * 706 ;
+		canvasHeight = canvasWidth / 640 * 706;
 	}
-	
-	
-	
-	if(stageHeight + 80 > window.screen.height){
+	if(stageHeight + 100 > window.screen.height){
 		//如果屏幕太矮
 		stageHeight = window.screen.height - 100;
+		console.log(stageHeight);
 		if(mode == 5){
-			
-			stageWidth = stageHeight / 866 * 640;
+			stageWidth = (stageHeight - 20) / 706 * 640 + 10;
+			canvasWidth = stageWidth - 10;
+			canvasHeight = canvasWidth / 640 * 866;
+
 		}else{
-			stageWidth = stageHeight / 706 * 640;
+			stageWidth = stageHeight / 706 * 640 + 10;
+
+			canvasHeight = stageHeight - 10;
+			canvasWidth = canvasHeight / 706 * 640;
+			mui.scrollTo(45,1000);
 		}
-		
 	}
-	console.log('现在的canvas和屏幕的宽度之差为'+window.screen.height+' - '+stageHeight);
-	canvas.style.width = stageWidth + 'px';
-	canvas.style.height = stageHeight + 'px';
-	$('.wgo-board').css('width',window.screen.width+'px');
-	$('.wgo-board').css('height',stageHeight+'px');
-	
-	
-	
-	
-	
+
+	canvas.style.width = canvasWidth + 'px';
+	canvas.style.height = canvasHeight + 'px';
+	$('.wgo-board').css('width',stageWidth+'px');
+	$('.wgo-board').css('height',stageHeight+'px');	
 }
 function initCanvas(e){
 	resizeCanvas();
@@ -463,8 +474,7 @@ function onReqMove(e) {
 }
 function checkIsFinalKill(o) {
     var e = AI.init(play.pace.join(""), 3, 1);
-    return console.log("checkIsFinalKill pace", e),
-    (play.my == 1) ? (e ? void 0 : void play.onGameEnd( -1, !0)) : (e ? void 0 : void play.onGameEnd( 1, !0))
+    return (play.my == 1) ? (e ? void 0 : void play.onGameEnd( -1, !0)) : (e ? void 0 : void play.onGameEnd( 1, !0))
 }
 var serverData = serverData || {},
 comm = comm || {};
@@ -518,17 +528,18 @@ comm["class"].Man = function(e, a, m) {
     this.text = o.text,
     this.value = o.value,
     this.isShow = !0,
-    this.ps = [],
+    this.ps = [];
+	var pointSeek = 15;
     this.move = function() {
-        var e = comm.spaceX * this.x + comm.pointStartX,
-        a = comm.spaceY * this.y + comm.pointStartY;
+        var e = comm.spaceX * this.x + comm.pointStartX - pointSeek,
+        a = comm.spaceY * this.y + comm.pointStartY - pointSeek;
         this.chess.x = e - 80,
         this.chess.y = a - 70
     },
     this.animate = function() {
         function e() {}
-        var a = comm.spaceX * this.x + comm.pointStartX,
-        m = comm.spaceY * this.y + comm.pointStartY,
+        var a = comm.spaceX * this.x + comm.pointStartX - pointSeek,
+        m = comm.spaceY * this.y + comm.pointStartY - pointSeek,
         o = a - 80,
         n = m - 70;
         play.isAnimating = !0,
@@ -553,14 +564,13 @@ comm["class"].Man = function(e, a, m) {
     },
     this.bl = function(e) {
         var e = e || play.map;
-        return comm.bylaw[o.bl](this.x, this.y, e, this.my)
+        return comm.bylaw[o.bl](parseInt(this.x), parseInt(this.y), e, this.my)
     }
 },
 comm.showDots = function() {
     for (var e = 0; e < comm.dot.dots.length; e++) {
         var a = comm.dot.dots[e].join(""),
         m = comm.Dots[a];
-		console.log(m);
         m.visible = !0
     }
 },
@@ -842,7 +852,7 @@ comm.createMan = function(a, m, o) {
 	n.x = m,
 	n.y = a,
 	comm.mans[o] = n;
-	var t = addChess(n.pater, comm.spaceX * n.x + comm.pointStartX, comm.spaceY * n.y + comm.pointStartY);
+	var t = addChess(n.pater);
 	n.chess = t,
 	n.move()
 },
@@ -859,6 +869,7 @@ comm.send = function(e) {
 	serverData.meta ? a.meta = serverData.meta: a.meta = {},
 	a.meta.FUPAN_TITLE = chapterTitle,
 	a.meta.FUPAN_JSON_FROM = "H5",
+	a.time =  new Date(),
 	console.log("toServerData", a),
 	console.log(JSON.stringify(a));
 	var o = JSON.stringify(a);
@@ -951,13 +962,11 @@ comm.bylaw.m = function(e, a, m, o) {
 },
 comm.bylaw.x = function(e, a, m, o) {
     var n = [];
-    return 1 === o ? (!(9 >= a + 2 && 8 >= e + 2) || play.map[a + 1][e + 1] || comm.mans[m[a + 2][e + 2]] && comm.mans[m[a + 2][e + 2]].my == o || n.push([e + 2, a + 2]), !(9 >= a + 2 && e - 2 >= 0) || play.map[a + 1][e - 1] || comm.mans[m[a + 2][e - 2]] && comm.mans[m[a + 2][e - 2]].my == o || n.push([e - 2, a + 2]), !(a - 2 >= 5 && 8 >= e + 2) || play.map[a - 1][e + 1] || comm.mans[m[a - 2][e + 2]] && comm.mans[m[a - 2][e + 2]].my == o || n.push([e + 2, a - 2]), !(a - 2 >= 5 && e - 2 >= 0) || play.map[a - 1][e - 1] || comm.mans[m[a - 2][e - 2]] && comm.mans[m[a - 2][e - 2]].my == o || n.push([e - 2, a - 2])) : (!(4 >= a + 2 && 8 >= e + 2) || play.map[a + 1][e + 1] || comm.mans[m[a + 2][e + 2]] && comm.mans[m[a + 2][e + 2]].my == o || n.push([e + 2, a + 2]), !(4 >= a + 2 && e - 2 >= 0) || play.map[a + 1][e - 1] || comm.mans[m[a + 2][e - 2]] && comm.mans[m[a + 2][e - 2]].my == o || n.push([e - 2, a + 2]), !(a - 2 >= 0 && 8 >= e + 2) || play.map[a - 1][e + 1] || comm.mans[m[a - 2][e + 2]] && comm.mans[m[a - 2][e + 2]].my == o || n.push([e + 2, a - 2]), !(a - 2 >= 0 && e - 2 >= 0) || play.map[a - 1][e - 1] || comm.mans[m[a - 2][e - 2]] && comm.mans[m[a - 2][e - 2]].my == o || n.push([e - 2, a - 2])),
-    n
+    return ((isVerticalReverse == 0 && 1 === o) || (isVerticalReverse == 1 && -1 === o)) ? (!(9 >= a + 2 && 8 >= e + 2) || play.map[a + 1][e + 1] || comm.mans[m[a + 2][e + 2]] && comm.mans[m[a + 2][e + 2]].my == o || n.push([e + 2, a + 2]), !(9 >= a + 2 && e - 2 >= 0) || play.map[a + 1][e - 1] || comm.mans[m[a + 2][e - 2]] && comm.mans[m[a + 2][e - 2]].my == o || n.push([e - 2, a + 2]), !(a - 2 >= 5 && 8 >= e + 2) || play.map[a - 1][e + 1] || comm.mans[m[a - 2][e + 2]] && comm.mans[m[a - 2][e + 2]].my == o || n.push([e + 2, a - 2]), !(a - 2 >= 5 && e - 2 >= 0) || play.map[a - 1][e - 1] || comm.mans[m[a - 2][e - 2]] && comm.mans[m[a - 2][e - 2]].my == o || n.push([e - 2, a - 2])) : (!(4 >= a + 2 && 8 >= e + 2) || play.map[a + 1][e + 1] || comm.mans[m[a + 2][e + 2]] && comm.mans[m[a + 2][e + 2]].my == o || n.push([e + 2, a + 2]), !(4 >= a + 2 && e - 2 >= 0) || play.map[a + 1][e - 1] || comm.mans[m[a + 2][e - 2]] && comm.mans[m[a + 2][e - 2]].my == o || n.push([e - 2, a + 2]), !(a - 2 >= 0 && 8 >= e + 2) || play.map[a - 1][e + 1] || comm.mans[m[a - 2][e + 2]] && comm.mans[m[a - 2][e + 2]].my == o || n.push([e + 2, a - 2]), !(a - 2 >= 0 && e - 2 >= 0) || play.map[a - 1][e - 1] || comm.mans[m[a - 2][e - 2]] && comm.mans[m[a - 2][e - 2]].my == o || n.push([e - 2, a - 2])),n 
 },
 comm.bylaw.s = function(e, a, m, o) {
     var n = [];
-    return 1 === o ? (9 >= a + 1 && 5 >= e + 1 && (!comm.mans[m[a + 1][e + 1]] || comm.mans[m[a + 1][e + 1]].my != o) && n.push([e + 1, a + 1]), 9 >= a + 1 && e - 1 >= 3 && (!comm.mans[m[a + 1][e - 1]] || comm.mans[m[a + 1][e - 1]].my != o) && n.push([e - 1, a + 1]), a - 1 >= 7 && 5 >= e + 1 && (!comm.mans[m[a - 1][e + 1]] || comm.mans[m[a - 1][e + 1]].my != o) && n.push([e + 1, a - 1]), a - 1 >= 7 && e - 1 >= 3 && (!comm.mans[m[a - 1][e - 1]] || comm.mans[m[a - 1][e - 1]].my != o) && n.push([e - 1, a - 1])) : (2 >= a + 1 && 5 >= e + 1 && (!comm.mans[m[a + 1][e + 1]] || comm.mans[m[a + 1][e + 1]].my != o) && n.push([e + 1, a + 1]), 2 >= a + 1 && e - 1 >= 3 && (!comm.mans[m[a + 1][e - 1]] || comm.mans[m[a + 1][e - 1]].my != o) && n.push([e - 1, a + 1]), a - 1 >= 0 && 5 >= e + 1 && (!comm.mans[m[a - 1][e + 1]] || comm.mans[m[a - 1][e + 1]].my != o) && n.push([e + 1, a - 1]), a - 1 >= 0 && e - 1 >= 3 && (!comm.mans[m[a - 1][e - 1]] || comm.mans[m[a - 1][e - 1]].my != o) && n.push([e - 1, a - 1])),
-    n
+    return ((isVerticalReverse == 0 && 1 === o) || (isVerticalReverse == 1 && -1 === o)) ? (9 >= a + 1 && 5 >= e + 1 && (!comm.mans[m[a + 1][e + 1]] || comm.mans[m[a + 1][e + 1]].my != o) && n.push([e + 1, a + 1]), 9 >= a + 1 && e - 1 >= 3 && (!comm.mans[m[a + 1][e - 1]] || comm.mans[m[a + 1][e - 1]].my != o) && n.push([e - 1, a + 1]), a - 1 >= 7 && 5 >= e + 1 && (!comm.mans[m[a - 1][e + 1]] || comm.mans[m[a - 1][e + 1]].my != o) && n.push([e + 1, a - 1]), a - 1 >= 7 && e - 1 >= 3 && (!comm.mans[m[a - 1][e - 1]] || comm.mans[m[a - 1][e - 1]].my != o) && n.push([e - 1, a - 1])) : (2 >= a + 1 && 5 >= e + 1 && (!comm.mans[m[a + 1][e + 1]] || comm.mans[m[a + 1][e + 1]].my != o) && n.push([e + 1, a + 1]), 2 >= a + 1 && e - 1 >= 3 && (!comm.mans[m[a + 1][e - 1]] || comm.mans[m[a + 1][e - 1]].my != o) && n.push([e - 1, a + 1]), a - 1 >= 0 && 5 >= e + 1 && (!comm.mans[m[a - 1][e + 1]] || comm.mans[m[a - 1][e + 1]].my != o) && n.push([e + 1, a - 1]), a - 1 >= 0 && e - 1 >= 3 && (!comm.mans[m[a - 1][e - 1]] || comm.mans[m[a - 1][e - 1]].my != o) && n.push([e - 1, a - 1])), n
 },
 comm.bylaw.j = function(e, a, m, o) {
     var n = [],
@@ -968,10 +977,7 @@ comm.bylaw.j = function(e, a, m, o) {
         n = e - 1; n > a; n--) if (m[n][o]) return ! 1;
         return ! 0
     } ();
-    return 1 === o ? (9 >= a + 1 && (!comm.mans[m[a + 1][e]] || comm.mans[m[a + 1][e]].my != o) && n.push([e, a + 1]), a - 1 >= 7 && (!comm.mans[m[a - 1][e]] || comm.mans[m[a - 1][e]].my != o) && n.push([e, a - 1]), comm.mans.j0.x == comm.mans.J0.x && t && n.push([comm.mans.J0.x, comm.mans.J0.y])) : (2 >= a + 1 && (!comm.mans[m[a + 1][e]] || comm.mans[m[a + 1][e]].my != o) && n.push([e, a + 1]), a - 1 >= 0 && (!comm.mans[m[a - 1][e]] || comm.mans[m[a - 1][e]].my != o) && n.push([e, a - 1]), comm.mans.j0.x == comm.mans.J0.x && t && n.push([comm.mans.j0.x, comm.mans.j0.y])),
-    5 >= e + 1 && (!comm.mans[m[a][e + 1]] || comm.mans[m[a][e + 1]].my != o) && n.push([e + 1, a]),
-    e - 1 >= 3 && (!comm.mans[m[a][e - 1]] || comm.mans[m[a][e - 1]].my != o) && n.push([e - 1, a]),
-    n
+     return ((isVerticalReverse == 0 && 1 === o) || (isVerticalReverse == 1 && -1 === o)) ? (9 >= a + 1 && (!comm.mans[m[a + 1][e]] || comm.mans[m[a + 1][e]].my != o) && n.push([e, a + 1]), a - 1 >= 7 && (!comm.mans[m[a - 1][e]] || comm.mans[m[a - 1][e]].my != o) && n.push([e, a - 1]), comm.mans.j0.x == comm.mans.J0.x && t && n.push([comm.mans.J0.x, comm.mans.J0.y])) : (2 >= a + 1 && (!comm.mans[m[a + 1][e]] || comm.mans[m[a + 1][e]].my != o) && n.push([e, a + 1]), a - 1 >= 0 && (!comm.mans[m[a - 1][e]] || comm.mans[m[a - 1][e]].my != o) && n.push([e, a - 1]), comm.mans.j0.x == comm.mans.J0.x && t && n.push([comm.mans.j0.x, comm.mans.j0.y])), 5 >= e + 1 && (!comm.mans[m[a][e + 1]] || comm.mans[m[a][e + 1]].my != o) && n.push([e + 1, a]),e - 1 >= 3 && (!comm.mans[m[a][e - 1]] || comm.mans[m[a][e - 1]].my != o) && n.push([e - 1, a]), n
 },
 comm.bylaw.p = function(e, a, m, o) {
     for (var n = [], t = 0, s = e - 1; s >= 0; s--) {
@@ -1025,21 +1031,7 @@ comm.bylaw.p = function(e, a, m, o) {
 },
 comm.bylaw.z = function(e, a, m, o) {
     var n = [];
-    return isVerticalReverse == 0 ? (
-	1 === o ? (a - 1 >= 0 && (!comm.mans[m[a - 1][e]] || comm.mans[m[a - 1][e]].my != o) && n.push([e, a - 1]), 
-	8 >= e + 1 && 4 >= a && (!comm.mans[m[a][e + 1]] || comm.mans[m[a][e + 1]].my != o) && n.push([e + 1, a]), 
-	e - 1 >= 0 && 4 >= a && (!comm.mans[m[a][e - 1]] || comm.mans[m[a][e - 1]].my != o) && n.push([e - 1, a])) : (
-	9 >= a + 1 && (!comm.mans[m[a + 1][e]] || comm.mans[m[a + 1][e]].my != o) && n.push([e, a + 1]), 
-	8 >= e + 1 && a >= 5 && (!comm.mans[m[a][e + 1]] || comm.mans[m[a][e + 1]].my != o) && n.push([e + 1, a]), 
-	e - 1 >= 0 && a >= 5 && (!comm.mans[m[a][e - 1]] || comm.mans[m[a][e - 1]].my != o) && n.push([e - 1, a])), 
-	n) : (1 === o ? (
-	9 >= a + 1 && (!comm.mans[m[a + 1][e]] || comm.mans[m[a + 1][e]].my != o) && n.push([e, a + 1]), 
-	8 >= e + 1 && 4 < a && (!comm.mans[m[a][e + 1]] || comm.mans[m[a][e + 1]].my != o) && n.push([e + 1, a]), 
-	e - 1 >= 0 && 4 < a && (!comm.mans[m[a][e - 1]] || comm.mans[m[a][e - 1]].my != o) && n.push([e - 1, a])) : (
-	a - 1 >= 0 && (!comm.mans[m[a - 1][e]] || comm.mans[m[a - 1][e]].my != o) && n.push([e, a - 1]), 
-	8 >= e + 1 && a < 5 && (!comm.mans[m[a][e + 1]] || comm.mans[m[a][e + 1]].my != o) && n.push([e + 1, a]), 
-	e - 1 >= 0 && a < 5 && (!comm.mans[m[a][e - 1]] || comm.mans[m[a][e - 1]].my != o) && n.push([e - 1, a])), 
-	n) 
+    return ((isVerticalReverse == 0 && 1 === o) || (isVerticalReverse == 1 && -1 === o)) ? ( a - 1 >= 0 && (!comm.mans[m[a - 1][e]] || comm.mans[m[a - 1][e]].my != o) && n.push([e, a - 1]), 8 >= e + 1 && 4 >= a && (!comm.mans[m[a][e + 1]] || comm.mans[m[a][e + 1]].my != o) && n.push([e + 1, a]), e - 1 >= 0 && 4 >= a && (!comm.mans[m[a][e - 1]] || comm.mans[m[a][e - 1]].my != o) && n.push([e - 1, a]) ) : ( 9 >= a + 1 && (!comm.mans[m[a + 1][e]] || comm.mans[m[a + 1][e]].my != o) && n.push([e, a + 1]), 8 >= e + 1 && a >= 5 && (!comm.mans[m[a][e + 1]] || comm.mans[m[a][e + 1]].my != o) && n.push([e + 1, a]), e - 1 >= 0 && a >= 5 && (!comm.mans[m[a][e - 1]] || comm.mans[m[a][e - 1]].my != o) && n.push([e - 1, a]) ), n	
 },
 comm.value = {
     c: [[206, 208, 207, 213, 214, 213, 207, 208, 206], [206, 212, 209, 216, 233, 216, 209, 212, 206], [206, 208, 207, 214, 216, 214, 207, 208, 206], [206, 213, 213, 216, 216, 216, 213, 213, 206], [208, 211, 211, 214, 215, 214, 211, 211, 208], [208, 212, 212, 214, 215, 214, 212, 212, 208], [204, 209, 204, 212, 214, 212, 204, 209, 204], [198, 208, 204, 212, 212, 212, 204, 208, 198], [200, 208, 206, 212, 200, 212, 206, 208, 200], [194, 206, 204, 212, 200, 212, 204, 206, 194]],
@@ -1058,18 +1050,18 @@ comm.value.J = comm.value.j,
 comm.value.P = comm.arr2Clone(comm.value.p).reverse(),
 comm.value.Z = comm.arr2Clone(comm.value.z).reverse(),
 comm.args = {
-    c: { text: "车", img: "r_c", my: 1, bl: "c", value: comm.value.c },
-    m: { text: "马", img: "r_m", my: 1, bl: "m", value: comm.value.m },
+    c: { text: "車", img: "r_c", my: 1, bl: "c", value: comm.value.c },
+    m: { text: "馬", img: "r_m", my: 1, bl: "m", value: comm.value.m },
     x: { text: "相", img: "r_x", my: 1, bl: "x", value: comm.value.x },
     s: { text: "仕", img: "r_s", my: 1, bl: "s", value: comm.value.s },
-    j: { text: "将", img: "r_j", my: 1, bl: "j", value: comm.value.j },
+    j: { text: "帅", img: "r_j", my: 1, bl: "j", value: comm.value.j },
     p: { text: "炮", img: "r_p", my: 1, bl: "p", value: comm.value.p },
     z: { text: "兵", img: "r_z", my: 1, bl: "z", value: comm.value.z },
-    C: { text: "車", img: "b_c", my: -1, bl: "c", value: comm.value.C },
-    M: { text: "馬", img: "b_m", my: -1, bl: "m", value: comm.value.M },
+    C: { text: "车", img: "b_c", my: -1, bl: "c", value: comm.value.C },
+    M: { text: "马", img: "b_m", my: -1, bl: "m", value: comm.value.M },
     X: { text: "象", img: "b_x", my: -1, bl: "x", value: comm.value.X },
     S: { text: "士", img: "b_s", my: -1, bl: "s", value: comm.value.S },
-    J: { text: "帅", img: "b_j", my: -1, bl: "j", value: comm.value.J },
+    J: { text: "将", img: "b_j", my: -1, bl: "j", value: comm.value.J },
     P: { text: "炮", img: "b_p", my: -1, bl: "p", value: comm.value.P },
     Z: { text: "卒", img: "b_z", my: -1, bl: "z", value: comm.value.Z }
 },
@@ -1085,4 +1077,56 @@ comm.getTips = function(e) {
     o.addChild(e),
     o
 };
-
+//把坐标生成着法
+comm.createMove = function (map,x,y,newX,newY){
+	var h="";		
+	var man = comm.mans[map[y][x]];
+	h+= man.text;
+	map[newY][newX] = map[y][x];
+	delete map[y][x];
+	if (man.my===1){
+		var mumTo=["一","二","三","四","五","六","七","八","九","十"];	
+		newX=8-newX;
+		h+= mumTo[8-x];
+		if (newY > y) {
+			h+= "退";
+			if (man.pater == "m" || man.pater == "s" || man.pater == "x"){
+				h+= mumTo[newX];
+			}else {
+				h+= mumTo[newY - y -1];
+			}
+		}else if (newY < y) {
+			h+= "进";
+			if (man.pater == "m" || man.pater == "s" || man.pater == "x"){
+				h+= mumTo[newX];
+			}else {
+				h+= mumTo[y - newY -1];
+			}
+		}else {
+			h+= "平";
+			h+= mumTo[newX];
+		}
+	}else{
+		var mumTo=["１","２","３","４","５","６","７","８","９","10"];
+		h+= mumTo[x];
+		if (newY > y) {
+			h+= "进";
+			if (man.pater == "M" || man.pater == "S" || man.pater == "X"){
+				h+= mumTo[newX];
+			}else {
+				h+= mumTo[newY - y-1];
+			}
+		}else if (newY < y) {
+			h+= "退";
+			if (man.pater == "M" || man.pater == "S" || man.pater == "X"){
+				h+= mumTo[newX];
+			}else {
+				h+= mumTo[y - newY-1];
+			}
+		}else {
+			h+= "平";
+			h+= mumTo[newX];
+		}
+	}		
+	return h;
+}
