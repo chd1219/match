@@ -3,7 +3,7 @@ function initWebsocket(){
 	var wsImpl = window.WebSocket || window.MozWebSocket;
 	// create a new websocket and connect
 	//window.ws = new wsImpl('ws://121.43.37.233:8183/');
-	window.ws = new ReconnectingWebSocket('ws://118.190.46.210:8181/');
+	window.ws = new ReconnectingWebSocket('ws://121.43.37.233:8181/');
 	// when data is comming from the server, this metod is called
 	ws.onmessage = function (evt) {
 		heartCheck.reset();
